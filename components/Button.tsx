@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: 'JetBrainsMonoBold',
     textAlign: 'center',
   },
 });
