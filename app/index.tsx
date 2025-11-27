@@ -28,9 +28,8 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
+      <Header title="Olá, Usuário" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Header title="Olá, Usuário" />
-
         {isLoading && <Text>Carregando...</Text>}
 
         {!isLoading && data?.length === 0 && (

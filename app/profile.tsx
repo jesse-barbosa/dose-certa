@@ -28,8 +28,8 @@ export default function Profile() {
 
   return (
     <View style={styles.container}>
+      <Header title="Perfil" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Header title="Perfil" />
         <View style={styles.form}>
           <Text style={styles.label}>Email:</Text>
           <TextInput style={styles.input} value={email} editable={false} />

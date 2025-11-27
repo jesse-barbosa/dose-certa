@@ -52,8 +52,8 @@ export default function AddMedicine() {
 
   return (
     <View style={styles.container}>
+      <Header title="Adicionar Medicamento" />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Header title="Adicionar Medicamento" />
         <View style={styles.form}>
           {step === 1 && (
             <>
