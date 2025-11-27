@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     marginHorizontal: 16,
     borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.25)", // semitransparente para efeito vidro
+    backgroundColor: "rgba(255,255,255,0.50)", // semitransparente para efeito vidro
     overflow: "hidden", // garante que cantos arredondados funcionem com BlurView
     shadowColor: "#000",
     borderWidth: 1,
@@ -78,7 +78,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
-    elevation: 4,
   },
   button: {
     alignItems: "center",
