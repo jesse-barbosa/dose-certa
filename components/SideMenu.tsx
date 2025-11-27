@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import Animated, { SlideInLeft, SlideOutLeft } from "react-native-reanimated";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
@@ -17,7 +18,7 @@ const menuItems = [
   {
     label: "Home",
     icon: <Ionicons name="home" size={22} color="#fff" />,
-    route: "/",
+    route: "/home",
   },
   {
     label: "Medicamentos",
@@ -28,11 +29,6 @@ const menuItems = [
     label: "Perfil",
     icon: <Ionicons name="person" size={22} color="#fff" />,
     route: "/profile",
-  },
-  {
-    label: "Configurações",
-    icon: <FontAwesome5 name="cog" size={22} color="#fff" />,
-    route: "/config",
   },
 ];
 
@@ -45,6 +41,12 @@ export default function SideMenu({ visible, onClose }: Props) {
   const router = useRouter();
 
   if (!visible) return null;
+
+  const handleLogout = () => {
+    onClose();
+    AsyncStorage.removeItem("sessionUser");
+    router.push("/");
+  };
 
   return (
     <Pressable style={styles.overlay} onPress={onClose}>
@@ -76,6 +78,17 @@ export default function SideMenu({ visible, onClose }: Props) {
             <Text style={styles.label}>{item.label}</Text>
           </TouchableOpacity>
         ))}
+
+        {/* Logout */}
+        <TouchableOpacity
+          style={styles.logOut}
+          onPress={() => {
+            handleLogout();
+          }}
+        >
+          <Ionicons name="log-out" size={22} color="#ff5050ff" />
+          <Text style={styles.logoutText}>Desconectar</Text>
+        </TouchableOpacity>
       </Animated.View>
     </Pressable>
   );
@@ -108,6 +121,18 @@ const styles = StyleSheet.create({
   },
   label: {
     color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+    marginLeft: 16,
+  },
+  logOut: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: "auto",
+    marginBottom: 64,
+  },
+  logoutText: {
+    color: "#ff5050ff", // red
     fontSize: 18,
     fontWeight: "600",
     marginLeft: 16,
