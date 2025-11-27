@@ -59,7 +59,10 @@ export default function Footer() {
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingBottom: 12, // espaçamento externo na parte de baixo
+    position: "absolute",
+    bottom: 20,
+    zIndex: 999,
+    width: "100%",
   },
   container: {
     flexDirection: "row",
@@ -71,7 +74,7 @@ const styles = StyleSheet.create({
     overflow: "hidden", // garante que cantos arredondados funcionem com BlurView
     shadowColor: "#000",
     borderWidth: 1,
-    borderColor: "#e6e6e6ff",
+    borderColor: "#dadadaff",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
