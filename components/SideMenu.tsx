@@ -53,7 +53,16 @@ export default function SideMenu({ visible, onClose }: Props) {
         exiting={SlideOutLeft.duration(300)}
         style={styles.container}
       >
-        <Text>Menu</Text>
+        <Text
+          style={{
+            color: "#fff",
+            fontSize: 24,
+            fontWeight: "600",
+            marginBottom: 48,
+          }}
+        >
+          Menu
+        </Text>
         {menuItems.map((item) => (
           <TouchableOpacity
             key={item.label}
