@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useRouter } from 'expo-router';
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useMenu } from "../app/_layout"; // importa contexto do menu
@@ -7,16 +8,24 @@ import { useMenu } from "../app/_layout"; // importa contexto do menu
 interface Props {
   title: string;
   subtitle?: string;
+  showBackButton?: boolean;
 }
 
-export default function Header({ title, subtitle }: Props) {
+export default function Header({ title, subtitle, showBackButton }: Props) {
   const menu = useMenu(); // pega funções open/close do menu
+  const router = useRouter(); // hook do expo-router para navegação
 
   return (
     <Animated.View entering={FadeInDown.duration(300)} style={styles.container}>
-      <TouchableOpacity style={styles.menuButton} onPress={menu.open}>
-        <Ionicons name="menu" size={28} color="#6366f1" />
-      </TouchableOpacity>
+      {showBackButton ? (
+        <TouchableOpacity style={styles.menuButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={28} color="#6366f1" />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity style={styles.menuButton} onPress={menu.open}>
+          <Ionicons name="menu" size={28} color="#6366f1" />
+        </TouchableOpacity>
+      )}
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{title}</Text>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
