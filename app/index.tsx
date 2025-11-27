@@ -83,7 +83,7 @@ export default function Home() {
       ) : (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyBox}>
-            <MaterialIcons name="check-circle" size={56} color="#4f46e5" />
+            <MaterialIcons name="check-circle" size={56} color="#34C759" />
             <Text style={styles.emptyTitle}>
               Você não tem medicamentos para tomar!
             </Text>
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: 16,
-    color: "#4f46e5",
+    color: "#1a1a1aff",
     textAlign: "center",
     opacity: 0.5,
   },
