@@ -13,10 +13,30 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async () => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) return Alert.alert('Erro', error.message);
-    Alert.alert('Sucesso', 'Conta criada! Verifique seu email.');
-    router.replace('/login');
+    try {
+      const { data: encrypted, error: encErr } = await supabase.rpc(
+        "encrypt_password",
+        { pass: password }
+      );
+
+      if (encErr) throw encErr;
+
+      const { error } = await supabase
+        .from("users")
+        .insert({
+          name,
+          email,
+          password: encrypted,
+          role: "user"
+        });
+
+      if (error) throw error;
+
+      Alert.alert("Sucesso", "Conta criada!");
+      router.replace("/home");
+    } catch (error) {
+      Alert.alert("Erro", error.message);
+    }
   };
 
   return (

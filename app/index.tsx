@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, ScrollView, KeyboardAvoidingView, Text, TextInput, StyleSheet, Alert, TouchableOpacity, Image, Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import Button from "../components/Button";
 import { useRouter } from "expo-router";
@@ -11,13 +12,41 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  useEffect(() => {
+    const checkSession = async () => {
+      const session = await AsyncStorage.getItem("sessionUser");
+      if (session) router.replace("/home");
+    };
+
+    checkSession();
+  }, []);
+
   const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) return Alert.alert("Erro", error.message);
-    router.replace("/");
+    try {
+      const { data: user, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", email)
+        .single();
+
+      if (error || !user) throw new Error("Email ou senha incorretos.");
+
+      const { data: isValid, error: checkErr } = await supabase.rpc(
+        "check_password",
+        {
+          pass: password,
+          hash: user.password
+        }
+      );
+
+      if (checkErr || !isValid) throw new Error("Email ou senha incorretos.");
+
+      await AsyncStorage.setItem("sessionUser", JSON.stringify(user));
+
+      router.replace("/");
+    } catch (error) {
+      Alert.alert("Erro", error.message);
+    }
   };
 
   return (
