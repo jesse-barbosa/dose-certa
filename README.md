@@ -73,8 +73,8 @@ GitHub
 
 ## Autores
 
-Jessé Barbosa
-Lauany
-Clarice
-Joyce
-Sara Rodrigues
+Jessé Barbosa,
+Lauany,
+Clarice,
+Joyce,
+Sara Rodrigues.
