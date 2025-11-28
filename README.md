@@ -1,50 +1,80 @@
-# Welcome to your Expo app 👋
+# Dose Certa
+Aplicativo desenvolvido em Expo/ React Native para auxiliar no controle de medicamentos, horários e dosagens. O objetivo é ajudar usuários a organizar o uso de medicamentos de forma prática e eficiente.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+## Sobre o projeto
+Dose Certa permite:
+   Registrar medicamentos;
+   Definir horáriois e notificações;
+   Acompanhar histórico de uso;
+   Organizar rotinas de tratamentos;
+   Facilitar o controle diário de dosagens.
 
-1. Install dependencies
+
+## Como iniciar o projeto
+1. Instalar dependências:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Rodar o aplicativo
 
    ```bash
    npx expo start
    ```
+   
+3. Instalar o aplicativo Expo Go no celular
 
-In the output, you'll find options to open the app in a
+   Android: Disponível na Google Play Store
+   iPhone (iOS): Disponível na App Store
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+4.Escanear o QR Code
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   Abra o Expo Go no celular;
+   Toque em Scan Qr Code;
+   Aponte a câmera para o QR Code que aparece no terminal ou no navegador.
 
-## Get a fresh project
+O aplicativo será carregado automaticamnete no seu celular.
 
-When you're ready, run:
+5. Atualização automática
+
+Sempre que você salvar qualquer alteração no código:
+
+   O app recarrega automaticamente no celular
+   Não precisa gerar outro QR Code
+
+
+## Você poderá abrir o app em:
+
+- [Construção de desenvolvimento](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Emulador Android](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [Simulador IOS](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go no celular](https://expo.dev/go)
+
+
+## Resetar o projeto (opcional)
 
 ```bash
 npm run reset-project
 ```
+Esse comando move o código inicial para "app-example" e cria uma pasta "app" vazia.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-## Learn more
+## Tecnologias utilizadas
 
-To learn more about developing your project with Expo, look at the following resources:
+Expo
+React Native
+TypeScript
+JavaScript
+Node.js
+GitHub
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-## Join the community
+## Autores
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Jessé Barbosa
+Lauany
+Clarice
+Joyce
+Sara Rodrigues
