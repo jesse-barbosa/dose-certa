@@ -8,13 +8,16 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  Modal,
+  FlatList,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Calendar } from "react-native-calendars";
-import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { supabase } from "../services/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { addMedicine } from "@/services/medicine";
 
 export default function AddMedicine() {
   const router = useRouter();
@@ -34,35 +37,111 @@ export default function AddMedicine() {
   // Horários
   const [selectedHours, setSelectedHours] = useState(["08:00"]);
 
+  // Modal states
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState(""); // 'dosageUnit', 'timesPerDay', 'durationDays', 'time'
+  const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
+  const [modalData, setModalData] = useState([]);
+
   // Calendário
   const [selectedDate, setSelectedDate] = useState("");
 
   const progress = step / totalSteps;
 
   const dosageUnits = ["mg", "ml", "g", "mcg", "gotas", "comprimido"];
-
-  const hourOptions = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
+  const timesOptions = ["1", "2", "3", "4", "5", "6"];
+  const durationOptions = Array.from({ length: 30 }, (_, i) => `${i + 1}`);
+  const hourOptions = Array.from(
+    { length: 24 },
+    (_, i) => `${i.toString().padStart(2, "0")}:00`
+  );
 
   // Garante que os horários sempre tenham o tamanho correto
   React.useEffect(() => {
     const count = Number(timesPerDay);
-
-    // Horários padrão espaçados
     const defaultHours = ["08:00", "12:00", "16:00", "20:00", "22:00", "06:00"];
 
-    // Ajusta o array para ter exatamente "count" itens
     setSelectedHours((prev) => {
       const newArr = [...prev];
-
-      // Aumenta se precisar
       while (newArr.length < count) {
         newArr.push(defaultHours[newArr.length] || "08:00");
       }
-
-      // Diminui se tiver itens demais
       return newArr.slice(0, count);
     });
   }, [timesPerDay]);
+
+  // Funções para o Modal
+  const openModal = (type, index = null) => {
+    setModalType(type);
+
+    switch (type) {
+      case "dosageUnit":
+        setModalData(dosageUnits);
+        break;
+      case "timesPerDay":
+        setModalData(timesOptions);
+        break;
+      case "durationDays":
+        setModalData(durationOptions);
+        break;
+      case "time":
+        setModalData(hourOptions);
+        setCurrentTimeIndex(index);
+        break;
+    }
+
+    setShowModal(true);
+  };
+
+  const handleModalSelect = (value) => {
+    switch (modalType) {
+      case "dosageUnit":
+        setDosageUnit(value);
+        break;
+      case "timesPerDay":
+        setTimesPerDay(value);
+        break;
+      case "durationDays":
+        setDurationDays(value);
+        break;
+      case "time":
+        const updated = [...selectedHours];
+        updated[currentTimeIndex] = value;
+        setSelectedHours(updated);
+        break;
+    }
+    setShowModal(false);
+  };
+
+  const getCurrentValue = () => {
+    switch (modalType) {
+      case "dosageUnit":
+        return dosageUnit;
+      case "timesPerDay":
+        return timesPerDay;
+      case "durationDays":
+        return durationDays;
+      case "time":
+        return selectedHours[currentTimeIndex];
+      default:
+        return "";
+    }
+  };
+
+  const getModalTitle = () => {
+    switch (modalType) {
+      case "dosageUnit":
+        return "Selecionar Unidade";
+      case "timesPerDay":
+        return "Vezes ao dia";
+      case "durationDays":
+        return "Duração (dias)";
+      case "time":
+        return `Horário ${currentTimeIndex + 1}`;
+      default:
+        return "Selecionar";
+    }
+  };
 
   const handleNext = () => {
     if (!name) return Alert.alert("Erro", "Informe o nome do medicamento");
@@ -72,23 +151,73 @@ export default function AddMedicine() {
   };
 
   const handleAdd = async () => {
-    if (!selectedDate)
-      return Alert.alert("Erro", "Selecione a data de início");
+    try {
+      if (!selectedDate) {
+        Alert.alert("Erro", "Selecione a data de início");
+        return;
+      }
 
-    const { error } = await supabase.from("medicines").insert({
-      name,
-      dosage: `${dosageValue}${dosageUnit}`,
-      times_per_day: Number(timesPerDay),
-      duration_days: Number(durationDays),
-      schedule_hours: selectedHours,
-      start_date: selectedDate,
-      user_id: "demo-user-id",
-    });
+      const userString = await AsyncStorage.getItem("sessionUser");
 
-    if (error) return Alert.alert("Erro", error.message);
+      if (!userString) {
+        Alert.alert("Erro", "Usuário não encontrado.");
+        console.log("sessionUser vazio");
+        return;
+      }
 
-    Alert.alert("Sucesso", "Medicamento adicionado!");
-    router.push("/");
+      let user;
+      try {
+        user = JSON.parse(userString);
+      } catch (err) {
+        console.log("Erro ao parsear sessionUser:", err);
+        Alert.alert("Erro", "Falha ao carregar dados do usuário.");
+        return;
+      }
+
+      if (!user?.id) {
+        console.log("user.id ausente:", user);
+        Alert.alert("Erro", "ID do usuário inválido.");
+        return;
+      }
+
+      // Validação de UUID
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+      if (!uuidRegex.test(user.id)) {
+        console.log("ID inválido:", user.id);
+        Alert.alert("Erro", "ID do usuário malformado.");
+        return;
+      }
+
+      // Montar payload para o service
+      const medicineData = {
+        name: name.trim(),
+        dosage: `${dosageValue}${dosageUnit}`,
+        times_per_day: Number(timesPerDay),
+        duration_days: Number(durationDays),
+        start_date: selectedDate,
+        schedule_hours: selectedHours,
+        userId: user.id,
+      };
+
+      console.log("Enviando para addMedicine:", medicineData);
+
+      // Chamada ao service
+      const result = await addMedicine(medicineData);
+
+      if (!result.success) {
+        console.log("Erro addMedicine:", result.error);
+        Alert.alert("Erro", result.error?.message || "Falha ao adicionar.");
+        return;
+      }
+
+      Alert.alert("Sucesso", "Medicamento adicionado!");
+      router.push("/");
+    } catch (err) {
+      console.log("Erro inesperado em handleAdd:", err);
+      Alert.alert("Erro", "Ocorreu um erro inesperado.");
+    }
   };
 
   // Gera marcações do calendário
@@ -97,10 +226,8 @@ export default function AddMedicine() {
 
     const marks = {};
     const totalDays = Number(durationDays);
-
     const start = new Date(selectedDate);
 
-    // Primeiro dia
     marks[selectedDate] = {
       startingDay: true,
       endingDay: totalDays === 1,
@@ -108,11 +235,9 @@ export default function AddMedicine() {
       textColor: "white",
     };
 
-    // Demais dias
     for (let i = 1; i < totalDays; i++) {
       const next = new Date(start);
       next.setDate(start.getDate() + i);
-
       const key = formatDate(next);
 
       marks[key] = {
@@ -171,46 +296,34 @@ export default function AddMedicine() {
                   value={dosageValue}
                   onChangeText={setDosageValue}
                 />
-                <View style={[styles.input, { flex: 1, padding: 0 }]}>
-                  <Picker
-                    selectedValue={dosageUnit}
-                    onValueChange={(v) => setDosageUnit(v)}
-                    style={{ width: "100%", height: 56 }}
-                  >
-                    {dosageUnits.map((u) => (
-                      <Picker.Item key={u} label={u} value={u} />
-                    ))}
-                  </Picker>
-                </View>
+                <TouchableOpacity
+                  style={styles.selectButton}
+                  onPress={() => openModal("dosageUnit")}
+                >
+                  <Text style={styles.selectButtonText}>{dosageUnit}</Text>
+                  <Text style={styles.selectButtonIcon}>▼</Text>
+                </TouchableOpacity>
               </View>
 
               {/* Vezes ao dia */}
               <Text style={styles.label}>Vezes ao dia</Text>
-              <View style={[styles.input, { padding: 0 }]}>
-                <Picker
-                  selectedValue={timesPerDay}
-                  onValueChange={(v) => setTimesPerDay(v)}
-                  style={{ width: "100%", height: 56 }}
-                >
-                  {[1,2,3,4,5,6].map((n) => (
-                    <Picker.Item key={n} label={`${n}`} value={`${n}`} />
-                  ))}
-                </Picker>
-              </View>
+              <TouchableOpacity
+                style={styles.selectButton}
+                onPress={() => openModal("timesPerDay")}
+              >
+                <Text style={styles.selectButtonText}>{timesPerDay}</Text>
+                <Text style={styles.selectButtonIcon}>▼</Text>
+              </TouchableOpacity>
 
               {/* Duração */}
               <Text style={styles.label}>Duração (dias)</Text>
-              <View style={[styles.input, { padding: 0 }]}>
-                <Picker
-                  selectedValue={durationDays}
-                  onValueChange={(v) => setDurationDays(v)}
-                  style={{ width: "100%", height: 56 }}
-                >
-                  {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
-                    <Picker.Item key={n} label={`${n}`} value={`${n}`} />
-                  ))}
-                </Picker>
-              </View>
+              <TouchableOpacity
+                style={styles.selectButton}
+                onPress={() => openModal("durationDays")}
+              >
+                <Text style={styles.selectButtonText}>{durationDays}</Text>
+                <Text style={styles.selectButtonIcon}>▼</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
                 <Text style={styles.nextButtonText}>Próximo →</Text>
@@ -227,40 +340,20 @@ export default function AddMedicine() {
               {Array.from({ length: Number(timesPerDay) }).map((_, index) => (
                 <View key={index} style={{ marginBottom: 20 }}>
                   <Text style={styles.label}>Horário {index + 1}</Text>
-
-                  <View
-                    style={[
-                      styles.wheelContainer,
-                      Platform.OS === "android" && styles.wheelAndroidFix,
-                    ]}
+                  <TouchableOpacity
+                    style={styles.selectButton}
+                    onPress={() => openModal("time", index)}
                   >
-                    <Picker
-                      selectedValue={selectedHours[index] ?? hourOptions[0]}
-                      onValueChange={(value) => {
-                        const updated = [...selectedHours];
-                        updated[index] = value;
-                        setSelectedHours(updated);
-                      }}
-                      style={{
-                        width: "100%",
-                        height: 56,
-                      }}
-                      itemStyle={{
-                        fontSize: 20,
-                        color: "#111827",
-                      }}
-                    >
-                      {hourOptions.map((h) => (
-                        <Picker.Item key={h} label={h} value={h} />
-                      ))}
-                    </Picker>
-                  </View>
+                    <Text style={styles.selectButtonText}>
+                      {selectedHours[index] || "Selecionar horário"}
+                    </Text>
+                    <Text style={styles.selectButtonIcon}>▼</Text>
+                  </TouchableOpacity>
                 </View>
               ))}
 
               {/* Calendário */}
               <Text style={styles.label}>Selecione a data de início</Text>
-
               <Calendar
                 minDate={new Date().toISOString().split("T")[0]}
                 onDayPress={(day) => setSelectedDate(day.dateString)}
@@ -283,23 +376,65 @@ export default function AddMedicine() {
         </View>
       </ScrollView>
 
+      {/* Modal para seleções */}
+      <Modal visible={showModal} transparent={true} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{getModalTitle()}</Text>
+
+            <FlatList
+              data={modalData}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.modalItem,
+                    getCurrentValue() === item && styles.modalItemSelected,
+                  ]}
+                  onPress={() => handleModalSelect(item)}
+                >
+                  <Text
+                    style={[
+                      styles.modalItemText,
+                      getCurrentValue() === item &&
+                        styles.modalItemTextSelected,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              style={styles.modalList}
+            />
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowModal(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Footer />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f3f4f6" },
-
-  scroll: { paddingBottom: 120 },
-
+  container: {
+    flex: 1,
+    backgroundColor: "#f3f4f6",
+  },
+  scroll: {
+    paddingBottom: 120,
+    flexGrow: 1,
+  },
   form: {
     flex: 1,
-    display: "flex",
-    minHeight: "100%",
     padding: 16,
   },
-
   progressContainer: {
     width: "100%",
     height: 6,
@@ -309,7 +444,6 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: "#4f46e5",
   },
-
   backStepButton: {
     padding: 12,
     paddingLeft: 20,
@@ -319,14 +453,12 @@ const styles = StyleSheet.create({
     color: "#4f46e5",
     fontWeight: "600",
   },
-
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#111827",
     marginBottom: 12,
   },
-
   label: {
     fontSize: 14,
     fontWeight: "600",
@@ -341,30 +473,37 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e5e7eb",
     height: 56,
+    fontSize: 16,
   },
-
   row: {
     flexDirection: "row",
     alignItems: "center",
   },
-
-  wheelContainer: {
-    backgroundColor: "#fff",
+  // Botões de seleção (substituem os Pickers)
+  selectButton: {
+    backgroundColor: "#ffffff",
+    padding: 12,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#e5e7eb",
-    overflow: "hidden",
+    height: 56,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-
-  wheelAndroidFix: {
-    backgroundColor: "#fff",
+  selectButtonText: {
+    fontSize: 16,
+    color: "#111827",
   },
-
+  selectButtonIcon: {
+    fontSize: 12,
+    color: "#666",
+  },
   nextButton: {
     marginTop: 32,
     marginBottom: 42,
     backgroundColor: "#4f46e5",
-    padding: 14,
+    padding: 16,
     borderRadius: 12,
     alignItems: "center",
   },
@@ -373,7 +512,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
-
   saveButton: {
     marginTop: 24,
     backgroundColor: "#4f46e5",
@@ -385,5 +523,57 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "700",
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: "60%",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  modalList: {
+    maxHeight: 300,
+  },
+  modalItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  modalItemSelected: {
+    backgroundColor: "#4f46e5",
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: "#111827",
+    textAlign: "center",
+  },
+  modalItemTextSelected: {
+    color: "white",
+    fontWeight: "600",
+  },
+  modalCloseButton: {
+    marginTop: 16,
+    padding: 16,
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#f3f4f6",
+  },
+  modalCloseButtonText: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "600",
   },
 });
