@@ -1,83 +1,147 @@
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
-import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
+import { ScrollView, StyleSheet, Text, View, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import CardMedicine from "../components/CardMedicine";
 import Button from "../components/Button";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { supabase } from "../services/supabase";
+import {
+  getMedicines,
+  deleteMedicine,
+  addMedicine,
+  updateMedicine,
+} from "@/services/medicine";
 
 export default function Home() {
   const navigation = useNavigation();
-  const userId = "demo-user-id";
-
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [userId, setUserId] = useState("");
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+
+      const session = await AsyncStorage.getItem("sessionUser");
+
+      if (!session) {
+        navigation.navigate("login");
+        setLoading(false);
+        return;
+      }
+
+      const user = JSON.parse(session);
+
+      setUserId(user?.id || "");
+      setLoading(false);
+    })();
+  }, []);
+
+  // BUSCAR MEDICAMENTOS
   const { data, isLoading } = useQuery({
     queryKey: ["medicines", userId],
+    enabled: !!userId, // só roda quando userId existir
     queryFn: async () => {
-      // const { data } = await supabase
-      //   .from("medicines")
-      //   .select("*")
-      //   .eq("user_id", userId);
-
-      /* mock data */
-      const data = [
-        {
-          id: "1",
-          name: "Paracetamol",
-          dosage: "500mg",
-        },
-        {
-          id: "2",
-          name: "Ibuprofeno",
-          dosage: "500mg",
-        },
-        {
-          id: "3",
-          name: "Dipirona",
-          dosage: "500mg",
-        },
-        {
-          id: "4",
-          name: "Dipirona",
-          dosage: "500mg",
-        },
-        {
-          id: "5",
-          name: "Dipirona",
-          dosage: "500mg",
-        },
-        {
-          id: "6",
-          name: "Dipirona",
-          dosage: "500mg",
-        },
-      ];
-      return data || [];
+      const result = await getMedicines(userId);
+      return result.success ? result.data : [];
     },
   });
+
+  // DELETAR MEDICAMENTO
+  const deleteMutation = useMutation({
+    mutationFn: async (medicineId: string) => {
+      const result = await deleteMedicine(medicineId, userId);
+      if (!result.success) {
+        throw new Error("Erro ao deletar medicamento");
+      }
+      return result;
+    },
+    onSuccess: () => {
+      // Atualiza a lista de medicamentos após deletar
+      queryClient.invalidateQueries({ queryKey: ["medicines", userId] });
+      Alert.alert("Sucesso", "Medicamento deletado com sucesso!");
+    },
+    onError: (error) => {
+      Alert.alert("Erro", "Erro ao deletar medicamento: " + error.message);
+    },
+  });
+
+  // FUNÇÃO PARA DELETAR
+  const handleDeleteMedicine = (medicineId: string, medicineName: string) => {
+    Alert.alert(
+      "Confirmar Exclusão",
+      ` Tem certeza que deseja deletar ${medicineName}?`,
+      [
+        {
+          text: "Cancelar",
+          onPress: () => {},
+          style: "cancel",
+        },
+        {
+          text: "Deletar",
+          onPress: () => {
+            deleteMutation.mutate(medicineId);
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
+
+  // FUNÇÃO PARA EDITAR
+  const handleEditMedicine = (medicineId: string) => {
+    router.push(`/edit/${medicineId}`);
+  };
+
+  // FUNÇÃO PARA ADICIONAR
+  const handleAddMedicine = () => {
+    router.push("/add");
+  };
 
   return (
     <View style={styles.container}>
       <Header title="Olá, Jessé Barbosa!" />
 
-      {data && data.length > 0 ? (
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Carregando medicamentos...</Text>
+        </View>
+      ) : data && data.length > 0 ? (
         <ScrollView
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         >
-          {data.map((item) => (
-            <CardMedicine
-              key={item.id}
-              name={item.name}
-              dosage={item.dosage}
-              onTake={() => alert(`Tomou ${item.name}`)}
-              onOpenDetails={() => router.push(`/edit/${item.id}`)}
-            />
+          {data.map((item: any) => (
+            <View key={item.id} style={styles.medicineCard}>
+              <CardMedicine
+                name={item.name}
+                dosage={item.dosage}
+                onTake={() => alert(`Tomou ${item.name}`)}
+                onOpenDetails={() => handleEditMedicine(item.id)}
+              />
+              <View style={styles.actionButtons}>
+                <Button
+                  onPress={() => handleEditMedicine(item.id)}
+                  style={styles.editButton}
+                >
+                  <MaterialIcons name="edit" size={18} color="#fff" />
+                  <Text style={styles.buttonText}>Editar</Text>
+                </Button>
+                <Button
+                  onPress={() => handleDeleteMedicine(item.id, item.name)}
+                  style={styles.deleteButton}
+                >
+                  <MaterialIcons name="delete" size={18} color="#fff" />
+                  <Text style={styles.buttonText}>Deletar</Text>
+                </Button>
+              </View>
+            </View>
           ))}
         </ScrollView>
       ) : (
@@ -91,7 +155,7 @@ export default function Home() {
               Adicione um medicamento para começar a utilizar a aplicação
             </Text>
           </View>
-          <Button onPress={() => router.push("/add")} style={styles.addButton}>
+          <Button onPress={handleAddMedicine} style={styles.addButton}>
             <View style={styles.addButtonContent}>
               <Text style={styles.addButtonText}>
                 Adicionar meu primeiro medicamento
@@ -121,7 +185,49 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
-    paddingBottom: 100, // espaço extra para footer
+    paddingBottom: 100,
+  },
+  medicineCard: {
+    marginBottom: 12,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 8,
+  },
+  editButton: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#4f46e5",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  deleteButton: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#ef4444",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#666",
   },
   emptyContainer: {
     flex: 1,
