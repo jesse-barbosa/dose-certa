@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import React, { useMemo, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
-import { parseLocalDate } from "@/helpers/parseLocalDate";
+import { parseLocalDate } from "@/utils/parseLocalDate";
 
 export default function CardMedicine({
   name,
