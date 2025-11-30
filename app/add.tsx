@@ -7,14 +7,12 @@ import {
   Alert,
   ScrollView,
   TouchableOpacity,
-  Platform,
   Modal,
   FlatList,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Calendar } from "react-native-calendars";
 import { useRouter } from "expo-router";
-import { supabase } from "../services/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { addMedicine } from "@/services/medicines";
@@ -31,6 +29,21 @@ export default function AddMedicine() {
   const [dosageUnit, setDosageUnit] = useState("mg");
   const [timesPerDay, setTimesPerDay] = useState("1");
   const [durationDays, setDurationDays] = useState("1");
+
+  const medicineSuggestions = [
+    "Ibuprofeno",
+    "Paracetamol",
+    "Amoxicilina",
+    "Dipirona",
+    "Omeprazol",
+    "Metformina",
+    "Sinvastatina",
+    "Losartana",
+    "Azitromicina",
+    "Cetirizina",
+  ];
+
+  const [placeholderName, setPlaceholderName] = useState("");
 
   const formatDate = (date) => date.toISOString().split("T")[0];
 
@@ -69,6 +82,12 @@ export default function AddMedicine() {
       return newArr.slice(0, count);
     });
   }, [timesPerDay]);
+
+  // get a random placeholder on load
+  React.useEffect(() => {
+    const random = Math.floor(Math.random() * medicineSuggestions.length);
+    setPlaceholderName(medicineSuggestions[random]);
+  }, []);
 
   // Funções para o Modal
   const openModal = (type, index = null) => {
@@ -281,7 +300,7 @@ export default function AddMedicine() {
               <Text style={styles.label}>Nome do medicamento</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Ex: Ibuprofeno"
+                placeholder={`Ex: ${placeholderName}`}
                 value={name}
                 onChangeText={setName}
               />
