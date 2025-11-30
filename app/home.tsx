@@ -9,13 +9,8 @@ import CardMedicine from "../components/CardMedicine";
 import Button from "../components/Button";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { supabase } from "../services/supabase";
-import {
-  getMedicines,
-  deleteMedicine,
-  addMedicine,
-  updateMedicine,
-} from "@/services/medicine";
+import { getNextDose } from "@/utils/getNextDose";
+import { getMedicines, deleteMedicine } from "@/services/medicines";
 
 export default function Home() {
   const navigation = useNavigation();
@@ -51,6 +46,18 @@ export default function Home() {
       const result = await getMedicines(userId);
       return result.success ? result.data : [];
     },
+  });
+
+  const enriched = data?.map((m) => {
+    const scheduleHours = m.schedules?.map((s) => s.time) || [];
+    const nextTime = getNextDose(scheduleHours);
+
+    return {
+      ...m,
+      nextTime,
+      notStarted: new Date(m.start_date) > new Date(),
+      startDate: m.start_date,
+    };
   });
 
   // DELETAR MEDICAMENTO
@@ -96,13 +103,44 @@ export default function Home() {
 
   // FUNÇÃO PARA EDITAR
   const handleEditMedicine = (medicineId: string) => {
-    router.push(`/edit/${medicineId}`);
+    router.push(`edit/${medicineId}`);
   };
 
   // FUNÇÃO PARA ADICIONAR
   const handleAddMedicine = () => {
     router.push("/add");
   };
+
+  // ORDENAR MEDICAMENTOS
+  const sorted = enriched
+    ?.map((m) => {
+      const now = new Date();
+      const start = new Date(m.start_date);
+
+      // flag: ainda não começou
+      const notStarted = start > now;
+
+      return {
+        ...m,
+        notStarted,
+        startDateObj: start,
+      };
+    })
+    .sort((a, b) => {
+      // 1) Se ambos ainda não começaram → ordenar por start_date
+      if (a.notStarted && b.notStarted) {
+        return a.startDateObj.getTime() - b.startDateObj.getTime();
+      }
+
+      // 2) Se A não começou mas B já começou → A fica depois
+      if (a.notStarted && !b.notStarted) return 1;
+
+      // 3) Se B não começou mas A já começou → B fica depois
+      if (!a.notStarted && b.notStarted) return -1;
+
+      // 4) Ambos já começaram → ordenar pela nextTime (da próxima dose)
+      return a.nextTime - b.nextTime;
+    });
 
   return (
     <View style={styles.container}>
@@ -117,37 +155,26 @@ export default function Home() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
         >
-          {data.map((item: any) => (
-            <View key={item.id} style={styles.medicineCard}>
-              <CardMedicine
-                name={item.name}
-                dosage={item.dosage}
-                onTake={() => alert(`Tomou ${item.name}`)}
-                onOpenDetails={() => handleEditMedicine(item.id)}
-              />
-              <View style={styles.actionButtons}>
-                <Button
-                  onPress={() => handleEditMedicine(item.id)}
-                  style={styles.editButton}
-                >
-                  <MaterialIcons name="edit" size={18} color="#fff" />
-                  <Text style={styles.buttonText}>Editar</Text>
-                </Button>
-                <Button
-                  onPress={() => handleDeleteMedicine(item.id, item.name)}
-                  style={styles.deleteButton}
-                >
-                  <MaterialIcons name="delete" size={18} color="#fff" />
-                  <Text style={styles.buttonText}>Deletar</Text>
-                </Button>
-              </View>
-            </View>
+          {sorted.map((item: any) => (
+            <CardMedicine
+              key={item.id}
+              name={item.name}
+              dosage={item.dosage}
+              nextTime={item.nextTime}
+              schedules={item.schedules.map((s) => s.time)}
+              startDate={item.startDate}
+              notStarted={item.notStarted}
+              onTake={() => handleTake(item)}
+              onOpenDetails={() => router.push(`/medicine/${item.id}`)}
+              onEdit={() => handleEditMedicine(item.id)}
+              onDelete={() => handleDeleteMedicine(item.id, item.name)}
+            />
           ))}
         </ScrollView>
       ) : (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyBox}>
-            <MaterialIcons name="check-circle" size={56} color="#34C759" />
+            <MaterialIcons name="check-circle" size={56} color="#4f46e5" />
             <Text style={styles.emptyTitle}>
               Você não tem medicamentos para tomar!
             </Text>
@@ -158,7 +185,7 @@ export default function Home() {
           <Button onPress={handleAddMedicine} style={styles.addButton}>
             <View style={styles.addButtonContent}>
               <Text style={styles.addButtonText}>
-                Adicionar meu primeiro medicamento
+                Adicione seu primeiro medicamento
               </Text>
               <MaterialIcons
                 name="add-circle"
@@ -184,11 +211,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f3f4f6",
   },
   list: {
-    padding: 16,
+    padding: 10,
     paddingBottom: 100,
-  },
-  medicineCard: {
-    marginBottom: 12,
   },
   actionButtons: {
     flexDirection: "row",

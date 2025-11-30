@@ -1,50 +1,180 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet, Alert } from 'react-native';
-import Button from '../../components/Button';
-import { useRouter, useSearchParams } from 'expo-router';
-import { supabase } from '../../services/supabase';
-import Header from '../../components/Header';
+// app/edit/[id].tsx
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Alert,
+  ScrollView,
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Button from "@/components/Button";
+import Header from "@/components/Header";
+import { getMedicineById, updateMedicine } from "@/services/medicines";
 
 export default function EditMedicine() {
+  const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { id } = useSearchParams();
-  const [name, setName] = useState('');
-  const [dosage, setDosage] = useState('');
+
+  const [userId, setUserId] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [name, setName] = useState("");
+  const [dosage, setDosage] = useState("");
+  const [timesPerDay, setTimesPerDay] = useState<string | number>("");
+  const [durationDays, setDurationDays] = useState<string | number>("");
+  const [startDate, setStartDate] = useState("");
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from('medicines').select('*').eq('id', id).single();
-      if (data) {
-        setName(data.name);
-        setDosage(data.dosage);
+      setLoading(true);
+      const session = await AsyncStorage.getItem("sessionUser");
+      if (!session) {
+        router.replace("login");
+        return;
       }
+      const user = JSON.parse(session);
+      setUserId(user?.id || "");
+      setLoading(false);
     })();
-  }, [id]);
+  }, []);
 
-  const handleEdit = async () => {
-    if (!name || !dosage) return Alert.alert('Erro', 'Preencha todos os campos');
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      setLoading(true);
+      const res = await getMedicineById(String(id), userId);
+      if (!res.success) {
+        Alert.alert("Erro", "Não foi possível carregar o medicamento.");
+        setLoading(false);
+        return;
+      }
+      const med = res.data;
+      setName(med.name || "");
+      setDosage(med.dosage || "");
+      setTimesPerDay(med.times_per_day ?? "");
+      setDurationDays(med.duration_days ?? "");
+      setStartDate(med.start_date ?? "");
+      setLoading(false);
+    })();
+  }, [userId, id]);
 
-    const { error } = await supabase.from('medicines').update({ name, dosage }).eq('id', id);
-    if (error) return Alert.alert('Erro', error.message);
+  const handleSave = async () => {
+    // validações simples
+    if (!name.trim()) {
+      Alert.alert("Validação", "Nome é obrigatório");
+      return;
+    }
+    setLoading(true);
+    const result = await updateMedicine(
+      String(id),
+      {
+        name: name.trim(),
+        dosage: dosage.trim(),
+        times_per_day: Number(timesPerDay) || undefined,
+        duration_days: Number(durationDays) || undefined,
+        start_date: startDate || undefined,
+      },
+      userId
+    );
 
-    Alert.alert('Sucesso', 'Medicamento atualizado!');
-    router.push('/');
+    setLoading(false);
+
+    if (!result.success) {
+      Alert.alert("Erro", "Não foi possível atualizar o medicamento");
+      return;
+    }
+
+    Alert.alert("Sucesso", "Medicamento atualizado", [
+      {
+        text: "OK",
+        onPress: () => router.replace(`../medicine/${id}`), // volta para detalhes
+      },
+    ]);
   };
 
   return (
-    <View style={styles.container}>
-      <Header title="Editar Medicamento" />
-      <View style={styles.form}>
-        <TextInput style={styles.input} placeholder="Nome do medicamento" value={name} onChangeText={setName} />
-        <TextInput style={styles.input} placeholder="Dosagem" value={dosage} onChangeText={setDosage} />
-        <Button onPress={handleEdit}>Salvar</Button>
-      </View>
-    </View>
+    <>
+      <Header title="Editar medicamento" showBackButton />
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.label}>Nome</Text>
+        <TextInput style={styles.input} value={name} onChangeText={setName} />
+
+        <Text style={styles.label}>Dosagem</Text>
+        <TextInput
+          style={styles.input}
+          value={dosage}
+          onChangeText={setDosage}
+        />
+
+        <Text style={styles.label}>Vezes por dia</Text>
+        <TextInput
+          style={styles.input}
+          value={String(timesPerDay)}
+          onChangeText={(t) => setTimesPerDay(t.replace(/\D/g, ""))}
+          keyboardType="numeric"
+        />
+
+        <Text style={styles.label}>Duração (dias)</Text>
+        <TextInput
+          style={styles.input}
+          value={String(durationDays)}
+          onChangeText={(t) => setDurationDays(t.replace(/\D/g, ""))}
+          keyboardType="numeric"
+        />
+
+        <Text style={styles.label}>Data de início (YYYY-MM-DD)</Text>
+        <TextInput
+          style={styles.input}
+          value={startDate}
+          onChangeText={setStartDate}
+        />
+
+        <View style={styles.buttonsRow}>
+          <Button
+            onPress={handleSave}
+            style={[styles.button, styles.saveButton]}
+          >
+            Salvar
+          </Button>
+
+          <Button
+            onPress={() => router.replace(`../medicine/${id}`)}
+            style={[styles.button, styles.cancelButton]}
+          >
+            Cancelar
+          </Button>
+        </View>
+      </ScrollView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex:1, backgroundColor:'#f3f4f6' },
-  form: { padding:16 },
-  input: { backgroundColor:'#fff', padding:12, marginBottom:16, borderRadius:12 },
+  container: {
+    padding: 20,
+    backgroundColor: "#f9fafb",
+  },
+  label: {
+    fontSize: 14,
+    color: "#374151",
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  buttonsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 20,
+  },
+  button: { flex: 1 },
+  saveButton: { backgroundColor: "#4f46e5" },
+  cancelButton: { backgroundColor: "#6b7280" },
 });

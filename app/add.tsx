@@ -17,7 +17,7 @@ import { useRouter } from "expo-router";
 import { supabase } from "../services/supabase";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { addMedicine } from "@/services/medicine";
+import { addMedicine } from "@/services/medicines";
 
 export default function AddMedicine() {
   const router = useRouter();

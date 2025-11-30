@@ -1,4 +1,4 @@
-import { supabase } from "../services/supabase";
+import { supabase } from "./supabase";
 
 // ADICIONAR MEDICAMENTO + HORÁRIOS
 export async function addMedicine(medicineData: {
@@ -56,7 +56,12 @@ export async function getMedicines(userId: string) {
   try {
     const { data, error } = await supabase
       .from("medicines")
-      .select("*")
+      .select(
+        `
+        *,
+        schedules:medicine_schedules (*)
+      `
+      )
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
