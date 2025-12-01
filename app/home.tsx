@@ -51,24 +51,37 @@ export default function Home() {
   const enriched = data?.map((m) => {
     const scheduleHours = m.schedules?.map((s) => s.time) || [];
     const nextTime = getNextDose(scheduleHours);
+
     const takenToday = (hour: string) => {
-      const today = new Date().toISOString().slice(0, 10);
+      const todayLocal = new Date().toLocaleDateString("pt-BR");
 
       return m.history?.some((h) => {
         return (
           h.status === "taken" &&
-          h.date.slice(0, 10) === today &&
+          new Date(h.date).toLocaleDateString("pt-BR") === todayLocal &&
           h.hour === hour
         );
       });
     };
 
+    const now = new Date();
+    const hasDoseNow = m.schedules.some((s) => {
+      const [h, m2] = s.time.split(":").map(Number);
+      const scheduled = new Date();
+      scheduled.setHours(h, m2, 0, 0);
+
+      return (
+        scheduled <= now && !takenToday(s.time) && new Date(m.start_date) <= now
+      );
+    });
+
     return {
       ...m,
       nextTime,
+      hasDoseNow,
+      takenToday,
       notStarted: new Date(m.start_date) > new Date(),
       startDate: m.start_date,
-      takenToday,
     };
   });
 
@@ -140,35 +153,18 @@ export default function Home() {
   };
 
   // ORDENAR MEDICAMENTOS
-  const sorted = enriched
-    ?.map((m) => {
-      const now = new Date();
-      const start = new Date(m.start_date);
+  const sorted = enriched?.sort((a, b) => {
+    // 1 — prioridade máxima: tem dose para tomar AGORA
+    if (a.hasDoseNow && !b.hasDoseNow) return -1;
+    if (!a.hasDoseNow && b.hasDoseNow) return 1;
 
-      // flag: ainda não começou
-      const notStarted = start > now;
+    // 2 — já começou vs não começou
+    if (!a.notStarted && b.notStarted) return -1;
+    if (a.notStarted && !b.notStarted) return 1;
 
-      return {
-        ...m,
-        notStarted,
-        startDateObj: start,
-      };
-    })
-    .sort((a, b) => {
-      // 1) Se ambos ainda não começaram → ordenar por start_date
-      if (a.notStarted && b.notStarted) {
-        return a.startDateObj.getTime() - b.startDateObj.getTime();
-      }
-
-      // 2) Se A não começou mas B já começou → A fica depois
-      if (a.notStarted && !b.notStarted) return 1;
-
-      // 3) Se B não começou mas A já começou → B fica depois
-      if (!a.notStarted && b.notStarted) return -1;
-
-      // 4) Ambos já começaram → ordenar pela nextTime (da próxima dose)
-      return a.nextTime - b.nextTime;
-    });
+    // 3 — ambos já começaram → ordenar pela nextTime
+    return a.nextTime - b.nextTime;
+  });
 
   return (
     <View style={styles.container}>
