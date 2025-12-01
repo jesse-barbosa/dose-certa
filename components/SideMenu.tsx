@@ -8,7 +8,6 @@ import {
   Pressable,
   Platform,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import Animated, { SlideInLeft, SlideOutLeft } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,24 +17,18 @@ import { useRouter } from "expo-router";
 const { width } = Dimensions.get("window");
 
 const menuItems = [
-  {
-    label: "Home",
-    icon: "home-outline",
-    route: "/home",
-  },
-  {
-    label: "Medicamentos",
-    icon: "medkit-outline",
-    route: "/add",
-  },
-  {
-    label: "Perfil",
-    icon: "person-circle-outline",
-    route: "/profile",
-  },
+  { label: "Home", icon: "home-outline", route: "/home" },
+  { label: "Medicamentos", icon: "medkit-outline", route: "/add" },
+  { label: "Perfil", icon: "person-circle-outline", route: "/profile" },
 ];
 
-export default function SideMenu({ visible, onClose }) {
+export default function SideMenu({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
   const router = useRouter();
 
   const [username, setUsername] = React.useState("");
@@ -49,7 +42,6 @@ export default function SideMenu({ visible, onClose }) {
         router.push("/login");
         return;
       }
-
       const user = JSON.parse(session);
       setUsername(user?.name ?? "");
       setEmail(user?.email ?? "");
@@ -72,29 +64,37 @@ export default function SideMenu({ visible, onClose }) {
         exiting={SlideOutLeft.duration(260)}
         style={styles.container}
       >
-        {/* Fundo com blur (efeito vidro premium) */}
-        <BlurView intensity={95} tint="dark" style={styles.blur}>
-          {/* Header com Avatar */}
+        {/* 1) Blur preenchendo o painel */}
+        <BlurView intensity={85} tint="dark" style={StyleSheet.absoluteFill} />
+
+        {/* 2) Tint layer — cor roxa suave sobre o blur (ajuste alpha para mais/menos saturação) */}
+        <View style={styles.tintLayer} />
+
+        {/* 3) Sutil highlight (linha branca translúcida no topo) */}
+        <View style={styles.topHighlight} />
+
+        {/* 4) Conteúdo por cima do vidro */}
+        <View style={styles.contentWrapper}>
           <View style={styles.header}>
             <View style={styles.avatar}>
               <Ionicons name="person" size={38} color="#fff" />
             </View>
 
             <View>
-              <Text style={styles.userName}>{username}</Text>
-              <Text style={styles.userEmail}>{email}</Text>
+              <Text style={styles.userName}>{username || "Olá"}</Text>
+              <Text style={styles.userEmail}>
+                {email || "usuário@exemplo.com"}
+              </Text>
             </View>
           </View>
 
-          {/* Divider */}
           <View style={styles.divider} />
 
-          {/* Items do menu */}
           {menuItems.map((item) => (
             <TouchableOpacity
               key={item.label}
               style={styles.menuItem}
-              activeOpacity={0.6}
+              activeOpacity={0.7}
               onPress={() => {
                 router.push(item.route);
                 onClose();
@@ -102,8 +102,8 @@ export default function SideMenu({ visible, onClose }) {
             >
               <Ionicons
                 name={item.icon as any}
-                size={25}
-                color="#fff"
+                size={24}
+                color="rgba(255,255,255,0.95)"
                 style={{ width: 32 }}
               />
               <Text style={styles.menuLabel}>{item.label}</Text>
@@ -112,16 +112,15 @@ export default function SideMenu({ visible, onClose }) {
 
           <View style={styles.divider} />
 
-          {/* Logout */}
           <TouchableOpacity
             style={styles.logout}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
             onPress={handleLogout}
           >
-            <Ionicons name="log-out-outline" size={24} color="#ff6b6b" />
+            <Ionicons name="log-out-outline" size={22} color="#ff7b7b" />
             <Text style={styles.logoutText}>Desconectar</Text>
           </TouchableOpacity>
-        </BlurView>
+        </View>
       </Animated.View>
     </Pressable>
   );
@@ -135,59 +134,81 @@ const styles = StyleSheet.create({
     width,
     height: "100%",
     backgroundColor: "rgba(0,0,0,0.25)",
-    backdropFilter: "blur(14px)",
     zIndex: 999,
   },
 
   container: {
     width: width * 0.78,
     height: "100%",
-    backgroundColor: "rgba(99, 102, 241, 1)",
-    opacity: 0.95,
+    // container must be transparent so blur shows the background
+    backgroundColor: "transparent",
+    overflow: "hidden", // important for rounded corners + blur
+    borderTopRightRadius: 18,
+    borderBottomRightRadius: 18,
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
+    shadowOpacity: 0.18,
+    shadowRadius: 30,
     elevation: 20,
+    opacity: 0.98,
   },
 
-  blur: {
+  // tintLayer: purple tint on top of the blur that gives the "liquid glass" hue
+  tintLayer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(99,102,241,0.30)", // adjust alpha 0.08 - 0.20 for stronger/weaker color
+  },
+
+  // top highlight: very subtle white streak to create depth
+  topHighlight: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: 62,
+    backgroundColor: "rgba(255,255,255,0.03)",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.04)",
+  },
+
+  contentWrapper: {
     flex: 1,
     paddingTop: Platform.OS === "ios" ? 80 : 60,
-    paddingHorizontal: 24,
-    backgroundColor: "transparent",
+    paddingHorizontal: 20,
   },
 
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 24,
   },
 
   avatar: {
-    width: 60,
-    height: 60,
+    width: 58,
+    height: 58,
     borderRadius: 30,
-    backgroundColor: "rgba(255,255,255,0.15)",
+    backgroundColor: "rgba(255,255,255,0.10)",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
   },
 
   userName: {
     color: "#fff",
-    fontSize: 20,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
   },
 
   userEmail: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 13,
+    marginTop: 2,
   },
 
   divider: {
     height: 1,
-    backgroundColor: "rgba(255,255,255,0.12)",
-    marginVertical: 20,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    marginVertical: 18,
   },
 
   menuItem: {
@@ -197,23 +218,23 @@ const styles = StyleSheet.create({
   },
 
   menuLabel: {
-    color: "#fff",
-    fontSize: 17,
-    fontFamily: "JetBrainsMonoBold",
-    letterSpacing: 0.3,
+    color: "rgba(255,255,255,0.95)",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 6,
   },
 
   logout: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: "auto",
-    marginBottom: 32,
+    marginBottom: 28,
   },
 
   logoutText: {
-    marginLeft: 12,
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#ff6b6b",
+    marginLeft: 10,
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#ff7b7b",
   },
 });
