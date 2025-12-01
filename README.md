@@ -1,80 +1,69 @@
-# Dose Certa
-Aplicativo desenvolvido em Expo/ React Native para auxiliar no controle de medicamentos, horários e dosagens. O objetivo é ajudar usuários a organizar o uso de medicamentos de forma prática e eficiente.
+# 📱 **Dose Certa**
 
+**Aplicativo desenvolvido com Expo + React Native para organizar medicamentos, horários e dosagens de forma simples, inteligente e prática.**
+Ideal para quem precisa acompanhar rotinas de tratamento com mais segurança e menos esquecimento.
 
-## Sobre o projeto
-Dose Certa permite:
-   Registrar medicamentos;
-   Definir horáriois e notificações;
-   Acompanhar histórico de uso;
-   Organizar rotinas de tratamentos;
-   Facilitar o controle diário de dosagens.
+---
 
+## ✨ **Visão Geral**
 
-## Como iniciar o projeto
-1. Instalar dependências:
+O **Dose Certa** permite que o usuário:
 
-   ```bash
-   npm install
-   ```
+* 💊 Cadastre medicamentos
+* ⏰ Defina horários e receba notificações
+* 📅 Acompanhe o histórico de doses tomadas
+* 📋 Organize rotinas de tratamento
+* 🔔 Reduza esquecimentos e aumente a precisão no uso diário
 
-2. Rodar o aplicativo
+---
 
-   ```bash
-   npx expo start
-   ```
-   
-3. Instalar o aplicativo Expo Go no celular
+## 🚀 **Como iniciar o projeto**
 
-   Android: Disponível na Google Play Store
-   iPhone (iOS): Disponível na App Store
-
-4.Escanear o QR Code
-
-   Abra o Expo Go no celular;
-   Toque em Scan Qr Code;
-   Aponte a câmera para o QR Code que aparece no terminal ou no navegador.
-
-O aplicativo será carregado automaticamnete no seu celular.
-
-5. Atualização automática
-
-Sempre que você salvar qualquer alteração no código:
-
-   O app recarrega automaticamente no celular
-   Não precisa gerar outro QR Code
-
-
-## Você poderá abrir o app em:
-
-- [Construção de desenvolvimento](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Emulador Android](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [Simulador IOS](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go no celular](https://expo.dev/go)
-
-
-## Resetar o projeto (opcional)
+### **1. Instalar dependências**
 
 ```bash
-npm run reset-project
+npm install
 ```
-Esse comando move o código inicial para "app-example" e cria uma pasta "app" vazia.
 
+### **2. Criar o arquivo `.env`**
 
-## Tecnologias utilizadas
+Na raíz do projeto existe um arquivo **`.env.example`**.
+Copie-o e renomeie para **`.env`**, preenchendo as variáveis necessárias:
 
-Expo
-React Native
-TypeScript
-JavaScript
-Node.js
-GitHub
+```bash
+cp .env.example .env
+```
 
+> ✨ *As variáveis inclue: a URL do banco e a chave pública anônima do projeto na supabase*
 
-## Autores
+### **3. Rodar o app**
 
-Jessé Barbosa,
-Lauany,
-Clarice,
-Joyce,
-Sara Rodrigues.
+```bash
+npx expo start
+```
+
+### **4. Instalar o Expo Go no celular**
+
+* **Android:** Disponível na Google Play Store
+* **iOS (iPhone):** Disponível na App Store
+
+---
+
+## 🛠️ **Tecnologias Utilizadas**
+
+* **Expo**
+* **React Native**
+* **TypeScript**
+* **JavaScript**
+* **Node.js**
+* **Git & GitHub**
+
+---
+
+## 👥 **Autores**
+
+* Jessé Barbosa
+* Lauany Ramalho
+* Clarice Alves
+* Joyce Fernandes
+* Sara Rodrigues
