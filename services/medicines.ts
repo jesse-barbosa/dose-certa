@@ -131,14 +131,18 @@ export async function updateMedicine(
     times_per_day?: number;
     duration_days?: number;
     start_date?: string;
+    schedule_hours?: string[]; // opcional — se presente, atualizamos medicine_schedules
   },
   userId: string
 ) {
   try {
+    // 1) Atualiza a tabela medicines (campos que existem)
+    const { schedule_hours, ...medicineOnly } = medicineData;
+
     const { data, error } = await supabase
       .from("medicines")
       .update({
-        ...medicineData,
+        ...medicineOnly,
         updated_at: new Date(),
       })
       .eq("id", medicineId)
@@ -147,8 +151,37 @@ export async function updateMedicine(
 
     if (error) throw error;
 
+    // 2) Se schedule_hours foi enviado, atualiza a tabela medicine_schedules:
+    //    a) Apaga os horários existentes daquele medicineId
+    //    b) Insere os novos (se houver)
+    if (Array.isArray(schedule_hours)) {
+      // apagar antigos
+      const { error: delError } = await supabase
+        .from("medicine_schedules")
+        .delete()
+        .eq("medicine_id", medicineId);
+
+      if (delError) throw delError;
+
+      // inserir novos (se houver elementos)
+      if (schedule_hours.length > 0) {
+        // convertendo para o formato de time se necessário (supabase aceitará 'HH:MM' para time)
+        const payload = schedule_hours.map((hour) => ({
+          medicine_id: medicineId,
+          time: hour, // ex: "08:00"
+        }));
+
+        const { error: insError } = await supabase
+          .from("medicine_schedules")
+          .insert(payload);
+
+        if (insError) throw insError;
+      }
+    }
+
     return { success: true, data };
   } catch (error) {
+    console.error("Erro em updateMedicine:", error);
     return { success: false, error };
   }
 }
