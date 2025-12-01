@@ -46,6 +46,16 @@ export default function Home() {
     })();
   }, []);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["medicines", userId] });
+    }, 60000); // 1 minuto
+
+    return () => clearInterval(interval);
+  }, [userId]);
+
   // BUSCAR MEDICAMENTOS
   const { data, isLoading } = useQuery({
     queryKey: ["medicines", userId],
