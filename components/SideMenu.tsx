@@ -65,7 +65,7 @@ export default function SideMenu({
         style={styles.container}
       >
         {/* 1) Blur preenchendo o painel */}
-        <BlurView intensity={85} tint="dark" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={85} tint="light" style={StyleSheet.absoluteFill} />
 
         {/* 2) Tint layer — cor roxa suave sobre o blur (ajuste alpha para mais/menos saturação) */}
         <View style={styles.tintLayer} />
@@ -77,7 +77,7 @@ export default function SideMenu({
         <View style={styles.contentWrapper}>
           <View style={styles.header}>
             <View style={styles.avatar}>
-              <Ionicons name="person" size={38} color="#fff" />
+              <Ionicons name="person" size={38} color="#333" />
             </View>
 
             <View>
@@ -103,7 +103,7 @@ export default function SideMenu({
               <Ionicons
                 name={item.icon as any}
                 size={24}
-                color="rgba(255,255,255,0.95)"
+                color="rgba(0,0,0,0.75)"
                 style={{ width: 32 }}
               />
               <Text style={styles.menuLabel}>{item.label}</Text>
@@ -117,7 +117,7 @@ export default function SideMenu({
             activeOpacity={0.8}
             onPress={handleLogout}
           >
-            <Ionicons name="log-out-outline" size={22} color="#ff7b7b" />
+            <Ionicons name="log-out-outline" size={22} color="#d33" />
             <Text style={styles.logoutText}>Desconectar</Text>
           </TouchableOpacity>
         </View>
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     left: 0,
     width,
     height: "100%",
-    backgroundColor: "rgba(0,0,0,0.25)",
+    backgroundColor: "rgba(0,0,0,0.05)",
     zIndex: 999,
   },
 
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   // tintLayer: purple tint on top of the blur that gives the "liquid glass" hue
   tintLayer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(99,102,241,0.30)", // adjust alpha 0.08 - 0.20 for stronger/weaker color
+    backgroundColor: "rgba(99,102,241,0.10)", // adjust alpha 0.08 - 0.20 for stronger/weaker color
   },
 
   // top highlight: very subtle white streak to create depth
@@ -185,29 +185,29 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 30,
-    backgroundColor: "rgba(255,255,255,0.10)",
+    borderWidth: 1,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    borderColor: "rgba(0,0,0,0.06)",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 14,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
   },
 
   userName: {
-    color: "#fff",
+    color: "#222",
     fontSize: 18,
     fontWeight: "700",
   },
 
   userEmail: {
-    color: "rgba(255,255,255,0.8)",
+    color: "rgba(0,0,0,0.6)",
     fontSize: 13,
     marginTop: 2,
   },
 
   divider: {
     height: 1,
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: "rgba(0,0,0,0.08)",
     marginVertical: 18,
   },
 
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
 
   menuLabel: {
-    color: "rgba(255,255,255,0.95)",
+    color: "rgba(0,0,0,0.85)",
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 6,
@@ -235,6 +235,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 16,
     fontWeight: "700",
-    color: "#ff7b7b",
+    color: "#d33",
   },
 });
