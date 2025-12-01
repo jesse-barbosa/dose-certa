@@ -10,10 +10,12 @@ import {
 import Button from "../components/Button";
 import { supabase } from "../services/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-export default function Profile({ navigation }: any) {
+export default function Profile() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -24,7 +26,9 @@ export default function Profile({ navigation }: any) {
       const session = await AsyncStorage.getItem("sessionUser");
 
       if (!session) {
-        navigation.navigate("login");
+        setLoading(false);
+        router.replace("/");
+        return;
       }
 
       const parsedSession = JSON.parse(session);
@@ -116,7 +120,7 @@ export default function Profile({ navigation }: any) {
         </View>
       )}
 
-      <Footer onNavigate={(screen) => navigation.navigate(screen)} />
+      <Footer />
     </View>
   );
 }

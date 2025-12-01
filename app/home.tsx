@@ -1,4 +1,3 @@
-import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useState, useEffect } from "react";
@@ -20,7 +19,6 @@ import { getNextDose } from "@/utils/getNextDose";
 import { getMedicines, takeDose, deleteMedicine } from "@/services/medicines";
 
 export default function Home() {
-  const navigation = useNavigation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [userId, setUserId] = useState("");
@@ -34,7 +32,7 @@ export default function Home() {
       const session = await AsyncStorage.getItem("sessionUser");
 
       if (!session) {
-        navigation.navigate("login");
+        router.replace("/");
         setLoading(false);
         return;
       }
@@ -252,9 +250,7 @@ export default function Home() {
         </View>
       )}
 
-      <Footer
-        onNavigate={(screen: string) => navigation.navigate(screen as never)}
-      />
+      <Footer />
     </View>
   );
 }

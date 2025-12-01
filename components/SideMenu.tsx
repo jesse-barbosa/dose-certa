@@ -39,7 +39,7 @@ export default function SideMenu({
     (async () => {
       const session = await AsyncStorage.getItem("sessionUser");
       if (!session) {
-        router.push("/login");
+        router.push("/");
         return;
       }
       const user = JSON.parse(session);

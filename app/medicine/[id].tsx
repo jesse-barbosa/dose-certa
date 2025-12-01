@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -16,7 +15,6 @@ import Header from "@/components/Header";
 import { getMedicineById, deleteMedicine } from "@/services/medicines";
 
 export default function MedicineDetails() {
-  const navigation = useNavigation();
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
@@ -31,8 +29,8 @@ export default function MedicineDetails() {
       const session = await AsyncStorage.getItem("sessionUser");
 
       if (!session) {
-        navigation.navigate("login");
         setLoading(false);
+        router.replace("/");
         return;
       }
 
@@ -78,7 +76,7 @@ export default function MedicineDetails() {
             }
 
             Alert.alert("Sucesso", "Medicamento deletado com sucesso!");
-            router.replace("/"); // volta para home
+            router.replace("/home"); // volta para home
           },
         },
       ]

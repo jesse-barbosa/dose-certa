@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, KeyboardAvoidingView, Text, TextInput, StyleSheet, Alert, TouchableOpacity, Image, Platform } from "react-native";
+import {
+  View,
+  ScrollView,
+  KeyboardAvoidingView,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  Image,
+  Platform,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import Button from "../components/Button";
@@ -35,7 +46,7 @@ export default function Login() {
         "check_password",
         {
           pass: password,
-          hash: user.password
+          hash: user.password,
         }
       );
 
@@ -43,7 +54,7 @@ export default function Login() {
 
       await AsyncStorage.setItem("sessionUser", JSON.stringify(user));
 
-      router.replace("/");
+      router.replace("/home");
     } catch (error) {
       Alert.alert("Erro", error.message);
     }
@@ -60,7 +71,10 @@ export default function Login() {
       >
         {/* Cabeçalho */}
         <View style={styles.header}>
-          <Image source={require("@/assets/images/icon.png")} style={styles.logo} />
+          <Image
+            source={require("@/assets/images/icon.png")}
+            style={styles.logo}
+          />
 
           <View>
             <Text style={styles.appName}>Dose Certa</Text>
@@ -69,7 +83,9 @@ export default function Login() {
 
         <View style={{ marginBottom: 32 }}>
           <Text style={styles.screenTitle}>Login</Text>
-          <Text style={styles.subtitle}>Bem-vindo de volta 👋{"\n"}Faça login para continuar.</Text>
+          <Text style={styles.subtitle}>
+            Bem-vindo de volta 👋{"\n"}Faça login para continuar.
+          </Text>
         </View>
 
         {/* Formulário */}
@@ -82,7 +98,16 @@ export default function Login() {
           keyboardType="email-address"
         />
         <View
-          style={[styles.input, { position: "relative", height: 48, paddingRight: 40, paddingLeft: 10, paddingVertical: 0, }]}
+          style={[
+            styles.input,
+            {
+              position: "relative",
+              height: 48,
+              paddingRight: 40,
+              paddingLeft: 10,
+              paddingVertical: 0,
+            },
+          ]}
         >
           <TextInput
             placeholder="Senha"
@@ -90,7 +115,16 @@ export default function Login() {
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
-            style={{ flex: 1, position: 'relative', display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: '#080808ff' }}
+            style={{
+              flex: 1,
+              position: "relative",
+              display: "flex",
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+              color: "#080808ff",
+            }}
           />
           <TouchableOpacity
             style={{
@@ -108,7 +142,7 @@ export default function Login() {
           </TouchableOpacity>
         </View>
 
-        <Button onPress={handleLogin}>Entrar</Button>
+        <Button onPress={() => handleLogin()}>Entrar</Button>
 
         <View style={styles.registerLink}>
           <Text>Primeira vez aqui?</Text>

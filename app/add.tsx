@@ -232,7 +232,7 @@ export default function AddMedicine() {
       }
 
       Alert.alert("Sucesso", "Medicamento adicionado!");
-      router.push("/");
+      router.push("/home");
     } catch (err) {
       console.log("Erro inesperado em handleAdd:", err);
       Alert.alert("Erro", "Ocorreu um erro inesperado.");
