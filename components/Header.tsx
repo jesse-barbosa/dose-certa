@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useRouter } from 'expo-router';
-import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useMenu } from "../app/_layout"; // importa contexto do menu
 
@@ -9,16 +9,27 @@ interface Props {
   title: string;
   subtitle?: string;
   showBackButton?: boolean;
+  rightSide?: string;
+  rightPress?: () => void;
 }
 
-export default function Header({ title, subtitle, showBackButton }: Props) {
+export default function Header({
+  title,
+  subtitle,
+  showBackButton,
+  rightSide,
+  rightPress,
+}: Props) {
   const menu = useMenu(); // pega funções open/close do menu
   const router = useRouter(); // hook do expo-router para navegação
 
   return (
     <Animated.View entering={FadeInDown.duration(300)} style={styles.container}>
       {showBackButton ? (
-        <TouchableOpacity style={styles.menuButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.back()}
+        >
           <Ionicons name="arrow-back" size={28} color="#6366f1" />
         </TouchableOpacity>
       ) : (
@@ -30,7 +41,21 @@ export default function Header({ title, subtitle, showBackButton }: Props) {
         <Text style={styles.title}>{title}</Text>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       </View>
-      <View style={styles.menuButton} />
+      {rightSide ? (
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={rightPress}
+          activeOpacity={0.8}
+        >
+          <MaterialCommunityIcons
+            name={rightSide as any}
+            size={28}
+            color={rightPress && rightSide === "delete" ? "#ef4444" : "#6366f1"}
+          />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.menuButton} />
+      )}
     </Animated.View>
   );
 }

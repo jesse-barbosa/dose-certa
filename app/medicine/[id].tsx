@@ -5,13 +5,14 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Header from "@/components/Header";
-import Button from "@/components/Button";
 import { getMedicineById, deleteMedicine } from "@/services/medicines";
 
 export default function MedicineDetails() {
@@ -105,10 +106,26 @@ export default function MedicineDetails() {
 
   return (
     <>
-      <Header title="Detalhes do medicamento" showBackButton />
+      <Header
+        title="Detalhes do medicamento"
+        showBackButton
+        rightSide="delete"
+        rightPress={() => handleDeleteMedicine(medicine.id, medicine.name)}
+      />
       <ScrollView style={styles.container}>
-        <Text style={styles.title}>{medicine.name}</Text>
-        <Text style={styles.subtitle}>{medicine.dosage}</Text>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>{medicine.name}</Text>
+            <Text style={styles.subtitle}>{medicine.dosage}</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push(`edit/${id}`)}>
+            <MaterialCommunityIcons
+              name="square-edit-outline"
+              size={34}
+              color="#4f46e5"
+            />
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.card}>
           <InfoRow label="Início do tratamento" value={medicine.start_date} />
@@ -124,22 +141,6 @@ export default function MedicineDetails() {
               • {i + 1}° Dose — {s.time.slice(0, 5)}
             </Text>
           ))}
-        </View>
-
-        <View style={styles.buttonsRow}>
-          <Button
-            onPress={() => router.push(`edit/${id}`)}
-            style={[styles.button, styles.editButton]}
-          >
-            Editar
-          </Button>
-
-          <Button
-            onPress={() => handleDeleteMedicine(medicine.id, medicine.name)}
-            style={[styles.button, styles.deleteButton]}
-          >
-            Excluir
-          </Button>
         </View>
       </ScrollView>
     </>
@@ -169,6 +170,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 28,
+  },
+
   title: {
     fontSize: 26,
     fontWeight: "800",
@@ -178,7 +186,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     color: "#4b5563",
-    marginBottom: 20,
   },
 
   sectionTitle: {
@@ -220,24 +227,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 6,
     color: "#374151",
-  },
-
-  buttonsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-
-  button: {
-    flex: 1,
-  },
-
-  editButton: {
-    backgroundColor: "#4f46e5",
-  },
-
-  deleteButton: {
-    backgroundColor: "#dc2626",
   },
 
   errorText: {
