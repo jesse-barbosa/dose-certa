@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Modal,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Calendar } from "react-native-calendars";
@@ -20,6 +21,9 @@ import { addMedicine } from "@/services/medicines";
 export default function AddMedicine() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+
+  // loading state
+  const [isSaving, setIsSaving] = useState(false);
 
   const totalSteps = 2;
 
@@ -171,8 +175,12 @@ export default function AddMedicine() {
 
   const handleAdd = async () => {
     try {
+      if (isSaving) return; // evita cliques repetidos
+      setIsSaving(true);
+
       if (!selectedDate) {
         Alert.alert("Erro", "Selecione a data de início");
+        setIsSaving(false);
         return;
       }
 
@@ -180,7 +188,7 @@ export default function AddMedicine() {
 
       if (!userString) {
         Alert.alert("Erro", "Usuário não encontrado.");
-        console.log("sessionUser vazio");
+        setIsSaving(false);
         return;
       }
 
@@ -188,28 +196,17 @@ export default function AddMedicine() {
       try {
         user = JSON.parse(userString);
       } catch (err) {
-        console.log("Erro ao parsear sessionUser:", err);
         Alert.alert("Erro", "Falha ao carregar dados do usuário.");
+        setIsSaving(false);
         return;
       }
 
       if (!user?.id) {
-        console.log("user.id ausente:", user);
         Alert.alert("Erro", "ID do usuário inválido.");
+        setIsSaving(false);
         return;
       }
 
-      // Validação de UUID
-      const uuidRegex =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-      if (!uuidRegex.test(user.id)) {
-        console.log("ID inválido:", user.id);
-        Alert.alert("Erro", "ID do usuário malformado.");
-        return;
-      }
-
-      // Montar payload para o service
       const medicineData = {
         name: name.trim(),
         dosage: `${dosageValue}${dosageUnit}`,
@@ -220,22 +217,20 @@ export default function AddMedicine() {
         userId: user.id,
       };
 
-      console.log("Enviando para addMedicine:", medicineData);
-
-      // Chamada ao service
       const result = await addMedicine(medicineData);
 
       if (!result.success) {
-        console.log("Erro addMedicine:", result.error);
         Alert.alert("Erro", result.error?.message || "Falha ao adicionar.");
+        setIsSaving(false);
         return;
       }
 
       Alert.alert("Sucesso", "Medicamento adicionado!");
       router.push("/home");
     } catch (err) {
-      console.log("Erro inesperado em handleAdd:", err);
       Alert.alert("Erro", "Ocorreu um erro inesperado.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -387,8 +382,23 @@ export default function AddMedicine() {
                 }}
               />
 
-              <TouchableOpacity style={styles.saveButton} onPress={handleAdd}>
-                <Text style={styles.saveButtonText}>Salvar medicamento</Text>
+              <TouchableOpacity
+                style={[styles.saveButton, isSaving && { opacity: 0.6 }]}
+                onPress={handleAdd}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text style={styles.saveButtonText}>Adicionando...</Text>
+                    <ActivityIndicator
+                      size="small"
+                      color="#fff"
+                      style={{ marginLeft: 10 }}
+                    />
+                  </View>
+                ) : (
+                  <Text style={styles.saveButtonText}>Salvar medicamento</Text>
+                )}
               </TouchableOpacity>
             </>
           )}
