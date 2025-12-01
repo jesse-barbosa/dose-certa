@@ -27,23 +27,23 @@ export default function CardMedicine({
 
       const [h, m] = hour.split(":").map(Number);
 
+      const now = new Date();
       const doseTime = new Date();
       doseTime.setHours(h, m, 0, 0);
 
-      const canTake =
-        !notStarted &&
-        (!start || start <= today) &&
-        doseTime <= today &&
-        !alreadyTaken;
+      const canTake = !notStarted && doseTime <= now && !alreadyTaken;
+
+      const future = doseTime > now && !alreadyTaken;
 
       return {
         label: `${index + 1}° Dose`,
         hour,
-        canTake,
         alreadyTaken,
+        canTake,
+        future,
       };
     });
-  }, [schedules, notStarted, startDate]);
+  }, [schedules, notStarted]);
 
   return (
     <View style={styles.cardContainer}>
@@ -81,25 +81,33 @@ export default function CardMedicine({
                 {item.label} — {item.hour.slice(0, 5)}
               </Text>
 
-              <TouchableOpacity
-                onPress={() => item.canTake && onTake(item.hour)}
-                disabled={!item.canTake}
-                style={[
-                  styles.takeButton,
-                  item.alreadyTaken && styles.takenButton,
-                  !item.canTake && !item.alreadyTaken && styles.disabledButton,
-                ]}
-              >
-                {item.alreadyTaken ? (
-                  <MaterialIcons name="check-circle" size={18} color="#fff" />
-                ) : (
-                  <MaterialIcons name="schedule" size={18} color="#fff" />
-                )}
-
-                <Text style={styles.takeButtonText}>
-                  {item.alreadyTaken ? "Tomado" : "Tomar"}
-                </Text>
-              </TouchableOpacity>
+              {item.alreadyTaken ? (
+                <View style={styles.takenTag}>
+                  <MaterialIcons
+                    name="check-circle"
+                    size={18}
+                    color="#22c55e"
+                  />
+                  <Text style={styles.takenText}>Tomado</Text>
+                </View>
+              ) : item.canTake ? (
+                <TouchableOpacity
+                  onPress={() => onTake(item.hour)}
+                  style={styles.takeNowButton}
+                >
+                  <MaterialIcons
+                    name="local-hospital"
+                    size={18}
+                    color="#2563eb"
+                  />
+                  <Text style={styles.takeNowText}>Tomar agora</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.upcomingTag}>
+                  <MaterialIcons name="schedule" size={18} color="#9ca3af" />
+                  <Text style={styles.upcomingText}>Aguardando</Text>
+                </View>
+              )}
             </View>
           ))}
         </View>
@@ -199,6 +207,48 @@ const styles = StyleSheet.create({
     alignItems: "center",
     opacity: 0.6,
     gap: 6,
+  },
+
+  takeNowButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#2563eb",
+    backgroundColor: "#eff6ff",
+  },
+  takeNowText: {
+    color: "#2563eb",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
+  takenTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  takenText: {
+    color: "#22c55e",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
+  upcomingTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  upcomingText: {
+    color: "#9ca3af",
+    fontSize: 15,
+    fontWeight: "600",
   },
 
   disabledButton: {
