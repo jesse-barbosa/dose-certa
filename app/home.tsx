@@ -2,7 +2,14 @@ import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useState, useEffect } from "react";
-import { ScrollView, StyleSheet, Text, View, Alert } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Alert,
+  RefreshControl,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import CardMedicine from "../components/CardMedicine";
@@ -18,6 +25,7 @@ export default function Home() {
   const queryClient = useQueryClient();
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -152,6 +160,12 @@ export default function Home() {
     router.push("/add");
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ["medicines", userId] });
+    setRefreshing(false);
+  };
+
   // ORDENAR MEDICAMENTOS
   const sorted = enriched?.sort((a, b) => {
     // 1 — prioridade máxima: tem dose para tomar AGORA
@@ -178,6 +192,9 @@ export default function Home() {
         <ScrollView
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         >
           {sorted.map((item: any) => (
             <CardMedicine
