@@ -160,7 +160,23 @@ export default function Home() {
   };
 
   const handleTake = (medicineId: string, hour: string) => {
-    takeMutation.mutate({ medicineId, hour });
+    Alert.alert(
+      "Confirmar dose",
+      `Deseja registrar a dose das ${hour.slice(0, 5)} como tomada?`,
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Sim, tomar agora",
+          style: "default",
+          onPress: () => {
+            takeMutation.mutate({ medicineId, hour });
+          },
+        },
+      ]
+    );
   };
 
   // FUNÇÃO PARA ADICIONAR
