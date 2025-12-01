@@ -6,7 +6,7 @@ import Animated, { Layout, FadeIn, FadeOut } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
 
 const tabs = [
-  { name: "Home", icon: <Ionicons name="home" size={28} />, route: "/" },
+  { name: "Home", icon: <Ionicons name="home" size={28} />, route: "/home" },
   {
     name: "Medicamentos",
     icon: <MaterialIcons name="medication" size={28} />,
