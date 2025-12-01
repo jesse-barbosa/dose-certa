@@ -6,7 +6,7 @@ import { parseLocalDate } from "@/utils/parseLocalDate";
 export default function CardMedicine({
   name,
   dosage,
-  schedules = [], // <- NOVO!
+  schedules = [],
   startDate,
   notStarted,
   onTake,
@@ -21,19 +21,26 @@ export default function CardMedicine({
   const start = startDate ? parseLocalDate(startDate) : null;
 
   const formattedSchedules = useMemo(() => {
-    return schedules.map((hour, index) => {
+    return schedules.map((item, index) => {
+      const hour = item.time;
+      const alreadyTaken = item.taken;
+
       const [h, m] = hour.split(":").map(Number);
 
       const doseTime = new Date();
       doseTime.setHours(h, m, 0, 0);
 
       const canTake =
-        !notStarted && (!start || start <= today) && doseTime <= today;
+        !notStarted &&
+        (!start || start <= today) &&
+        doseTime <= today &&
+        !alreadyTaken;
 
       return {
         label: `${index + 1}° Dose`,
         hour,
         canTake,
+        alreadyTaken,
       };
     });
   }, [schedules, notStarted, startDate]);
@@ -76,25 +83,22 @@ export default function CardMedicine({
 
               <TouchableOpacity
                 onPress={() => item.canTake && onTake(item.hour)}
+                disabled={!item.canTake}
                 style={[
                   styles.takeButton,
-                  !item.canTake && styles.disabledButton,
-                  item.canTake
-                    ? styles.availableButton
-                    : item.hour <= today
-                    ? styles.takenButton
-                    : styles.blockedButton,
+                  item.alreadyTaken && styles.takenButton,
+                  !item.canTake && !item.alreadyTaken && styles.disabledButton,
                 ]}
-                disabled={!item.canTake}
               >
-                {item.hour <= today ? (
+                {item.alreadyTaken ? (
                   <MaterialIcons name="check-circle" size={18} color="#fff" />
-                ) : item.canTake ? (
-                  <MaterialIcons name="schedule" size={18} color="#fff" />
                 ) : (
-                  <MaterialIcons name="lock" size={18} color="#fff" />
+                  <MaterialIcons name="schedule" size={18} color="#fff" />
                 )}
-                <Text style={styles.takeButtonText}>Tomar</Text>
+
+                <Text style={styles.takeButtonText}>
+                  {item.alreadyTaken ? "Tomado" : "Tomar"}
+                </Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -183,6 +187,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
+    gap: 6,
+  },
+
+  takenButton: {
+    backgroundColor: "#30ff5dff",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    opacity: 0.6,
     gap: 6,
   },
 

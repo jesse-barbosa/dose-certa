@@ -10,7 +10,7 @@ import Button from "../components/Button";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getNextDose } from "@/utils/getNextDose";
-import { getMedicines, deleteMedicine } from "@/services/medicines";
+import { getMedicines, takeDose, deleteMedicine } from "@/services/medicines";
 
 export default function Home() {
   const navigation = useNavigation();
@@ -51,13 +51,37 @@ export default function Home() {
   const enriched = data?.map((m) => {
     const scheduleHours = m.schedules?.map((s) => s.time) || [];
     const nextTime = getNextDose(scheduleHours);
+    const takenToday = (hour: string) => {
+      const today = new Date().toISOString().slice(0, 10);
+
+      return m.history?.some((h) => {
+        return (
+          h.status === "taken" &&
+          h.date.slice(0, 10) === today &&
+          h.hour === hour
+        );
+      });
+    };
 
     return {
       ...m,
       nextTime,
       notStarted: new Date(m.start_date) > new Date(),
       startDate: m.start_date,
+      takenToday,
     };
+  });
+
+  const takeMutation = useMutation({
+    mutationFn: async ({ medicineId, hour }: any) => {
+      return await takeDose(medicineId, hour);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["medicines", userId] });
+    },
+    onError: () => {
+      Alert.alert("Erro", "Não foi possível registrar a dose.");
+    },
   });
 
   // DELETAR MEDICAMENTO
@@ -104,6 +128,10 @@ export default function Home() {
   // FUNÇÃO PARA EDITAR
   const handleEditMedicine = (medicineId: string) => {
     router.push(`edit/${medicineId}`);
+  };
+
+  const handleTake = (medicineId: string, hour: string) => {
+    takeMutation.mutate({ medicineId, hour });
   };
 
   // FUNÇÃO PARA ADICIONAR
@@ -161,10 +189,13 @@ export default function Home() {
               name={item.name}
               dosage={item.dosage}
               nextTime={item.nextTime}
-              schedules={item.schedules.map((s) => s.time)}
+              schedules={item.schedules.map((s) => ({
+                time: s.time,
+                taken: item.takenToday(s.time),
+              }))}
               startDate={item.startDate}
               notStarted={item.notStarted}
-              onTake={() => handleTake(item)}
+              onTake={(hour) => handleTake(item.id, hour)}
               onOpenDetails={() => router.push(`/medicine/${item.id}`)}
               onEdit={() => handleEditMedicine(item.id)}
               onDelete={() => handleDeleteMedicine(item.id, item.name)}

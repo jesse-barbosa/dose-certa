@@ -59,7 +59,8 @@ export async function getMedicines(userId: string) {
       .select(
         `
         *,
-        schedules:medicine_schedules (*)
+        schedules:medicine_schedules (*),
+        history:medicine_history (*)
       `
       )
       .eq("user_id", userId)
@@ -94,6 +95,29 @@ export async function getMedicineById(medicineId: string, userId: string) {
 
     return { success: true, data: { ...data, schedules } };
   } catch (error) {
+    return { success: false, error };
+  }
+}
+
+// REGISTRAR DOSE COMO TOMADA
+export async function takeDose(medicineId: string, hour: string) {
+  try {
+    const now = new Date();
+
+    const { data, error } = await supabase.from("medicine_history").insert([
+      {
+        medicine_id: medicineId,
+        status: "taken",
+        date: now,
+        hour, // ← SALVAR O HORÁRIO DA DOSE
+      },
+    ]);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao registrar dose:", error);
     return { success: false, error };
   }
 }
