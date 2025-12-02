@@ -81,8 +81,8 @@ Aqui estão algumas telas do aplicativo:
       <td><img src="./demo/IMAGEM2.jpeg" width="250"></td>
     </tr>
     <tr>
-      <td><img src="./demo/IMAGEM3.jpeg" width="250"></td>
       <td><img src="./demo/IMAGEM4.jpeg" width="250"></td>
+      <td><img src="./demo/IMAGEM 3.jpeg" width="250"></td>
     </tr>
   </table>
 </div>
