@@ -60,16 +60,6 @@ npx expo start
 
 ---
 
-## 👥 **Autores**
-
-* Jessé Barbosa
-* Lauany Ramalho
-* Clarice Alves
-* Joyce Fernandes
-* Sara Rodrigues
-
----
-
 ## *Demonstração do app*
 
 Aqui estão algumas telas do aplicativo:
@@ -86,3 +76,13 @@ Aqui estão algumas telas do aplicativo:
     </tr>
   </table>
 </div>
+
+---
+
+## 👥 **Autores**
+
+* Jessé Barbosa
+* Lauany Ramalho
+* Clarice Alves
+* Joyce Fernandes
+* Sara Rodrigues
