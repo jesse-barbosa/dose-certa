@@ -67,3 +67,16 @@ npx expo start
 * Clarice Alves
 * Joyce Fernandes
 * Sara Rodrigues
+
+---
+
+## *Demonstração do app*
+
+Aqui estão algumas telas do aplicativo:
+
+<p align="center">
+  <img src="./demo/IMAGEM1.jpeg" width="250" />
+  <img src="./demo/IMAGEM2.jpeg" width="250" />
+  <img src="./demo/IMAGEM3.jpeg" width="250" />
+  <img src="./demo/IMAGEM4.jpeg" width="250" />
+</p>
