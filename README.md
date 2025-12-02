@@ -74,9 +74,13 @@ npx expo start
 
 Aqui estão algumas telas do aplicativo:
 
-<p align="center">
-  <img src="./demo/IMAGEM1.jpeg" width="250" />
-  <img src="./demo/IMAGEM 3.jpeg" width="250" />
-  <img src="./demo/IMAGEM2.jpeg" width="250" />
-  <img src="./demo/IMAGEM4.jpeg" width="250" />
-</p>
+<table>
+  <tr>
+    <td><img src="./demo/IMAGEM1.jpeg" width="250"></td>
+    <td><img src="./demo/IMAGEM2.jpeg" width="250"></td>
+  </tr>
+  <tr>
+    <td><img src="./demo/IMAGEM3.jpeg" width="250"></td>
+    <td><img src="./demo/IMAGEM4.jpeg" width="250"></td>
+  </tr>
+</table>
