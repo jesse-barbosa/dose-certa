@@ -1,5 +1,16 @@
 import React, { useState } from "react";
-import { View, ScrollView, KeyboardAvoidingView, Text, TextInput, StyleSheet, Alert, TouchableOpacity, Image, Platform } from "react-native";
+import {
+  View,
+  ScrollView,
+  KeyboardAvoidingView,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  Image,
+  Platform,
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Button from "../components/Button";
 import { useRouter } from "expo-router";
@@ -12,23 +23,20 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+
   const handleRegister = async () => {
+    setLoading(true);
     try {
       const { data: encrypted, error: encErr } = await supabase.rpc(
         "encrypt_password",
         { pass: password }
       );
-
       if (encErr) throw encErr;
 
       const { error } = await supabase
         .from("users")
-        .insert({
-          name,
-          email,
-          password: encrypted,
-          role: "user"
-        });
+        .insert({ name, email, password: encrypted, role: "user" });
 
       if (error) throw error;
 
@@ -36,6 +44,7 @@ export default function Register() {
       router.replace("/home");
     } catch (error) {
       Alert.alert("Erro", error.message);
+      setLoading(false); // encerra carregamento
     }
   };
 
@@ -50,7 +59,10 @@ export default function Register() {
       >
         {/* Cabeçalho */}
         <View style={styles.header}>
-          <Image source={require("@/assets/images/icon.png")} style={styles.logo} />
+          <Image
+            source={require("@/assets/images/icon.png")}
+            style={styles.logo}
+          />
 
           <View>
             <Text style={styles.appName}>Dose Certa</Text>
@@ -59,7 +71,9 @@ export default function Register() {
 
         <View style={{ marginBottom: 32 }}>
           <Text style={styles.screenTitle}>Registro</Text>
-          <Text style={styles.subtitle}>Seja bem vindo 👋{"\n"}Crie sua conta para começar.</Text>
+          <Text style={styles.subtitle}>
+            Seja bem vindo 👋{"\n"}Crie sua conta para começar.
+          </Text>
         </View>
 
         {/* Formulário */}
@@ -80,7 +94,16 @@ export default function Register() {
           keyboardType="email-address"
         />
         <View
-          style={[styles.input, { position: "relative", height: 48, paddingRight: 40, paddingLeft: 10, paddingVertical: 0, }]}
+          style={[
+            styles.input,
+            {
+              position: "relative",
+              height: 48,
+              paddingRight: 40,
+              paddingLeft: 10,
+              paddingVertical: 0,
+            },
+          ]}
         >
           <TextInput
             placeholder="Senha"
@@ -88,7 +111,16 @@ export default function Register() {
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
-            style={{ flex: 1, position: 'relative', display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: '#080808ff' }}
+            style={{
+              flex: 1,
+              position: "relative",
+              display: "flex",
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+              color: "#080808ff",
+            }}
           />
           <TouchableOpacity
             style={{
@@ -106,7 +138,9 @@ export default function Register() {
           </TouchableOpacity>
         </View>
 
-        <Button onPress={handleRegister}>Registrar</Button>
+        <Button onPress={handleRegister} disabled={loading}>
+          {loading ? "Processando..." : "Registrar"}
+        </Button>
 
         <View style={styles.registerLink}>
           <Text>Já registrou antes?</Text>

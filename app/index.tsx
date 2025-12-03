@@ -23,6 +23,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const checkSession = async () => {
       const session = await AsyncStorage.getItem("sessionUser");
@@ -33,6 +35,7 @@ export default function Login() {
   }, []);
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
       const { data: user, error } = await supabase
         .from("users")
@@ -44,19 +47,16 @@ export default function Login() {
 
       const { data: isValid, error: checkErr } = await supabase.rpc(
         "check_password",
-        {
-          pass: password,
-          hash: user.password,
-        }
+        { pass: password, hash: user.password }
       );
 
       if (checkErr || !isValid) throw new Error("Email ou senha incorretos.");
 
       await AsyncStorage.setItem("sessionUser", JSON.stringify(user));
-
       router.replace("/home");
     } catch (error) {
       Alert.alert("Erro", error.message);
+      setLoading(false); // encerra carregamento
     }
   };
 
@@ -142,7 +142,9 @@ export default function Login() {
           </TouchableOpacity>
         </View>
 
-        <Button onPress={() => handleLogin()}>Entrar</Button>
+        <Button onPress={handleLogin} disabled={loading}>
+          {loading ? "Processando..." : "Entrar"}
+        </Button>
 
         <View style={styles.registerLink}>
           <Text>Primeira vez aqui?</Text>
