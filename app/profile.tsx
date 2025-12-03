@@ -62,6 +62,12 @@ export default function Profile() {
       .update({ name, email })
       .eq("id", user.id);
 
+    // Atualiza dados da sessão
+    await AsyncStorage.setItem(
+      "sessionUser",
+      JSON.stringify({ ...user, name, email })
+    );
+
     setLoading(false);
 
     if (error) {
