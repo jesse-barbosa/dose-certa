@@ -11,6 +11,7 @@ import {
   Image,
   Platform,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import Button from "../components/Button";
 import { useRouter } from "expo-router";
@@ -28,19 +29,35 @@ export default function Register() {
   const handleRegister = async () => {
     setLoading(true);
     try {
+      // criptografa a senha
       const { data: encrypted, error: encErr } = await supabase.rpc(
         "encrypt_password",
         { pass: password }
       );
       if (encErr) throw encErr;
 
-      const { error } = await supabase
+      // insere usuário e retorna os dados inseridos
+      const { data: userData, error } = await supabase
         .from("users")
-        .insert({ name, email, password: encrypted, role: "user" });
+        .insert({ name, email, password: encrypted, role: "user" })
+        .select() // ← retorna os dados inseridos
+        .single(); // ← pega apenas o primeiro objeto
 
       if (error) throw error;
 
       Alert.alert("Sucesso", "Conta criada!");
+
+      // salva sessão com id
+      await AsyncStorage.setItem(
+        "sessionUser",
+        JSON.stringify({
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+        })
+      );
+
       router.replace("/home");
     } catch (error) {
       Alert.alert("Erro", error.message);
