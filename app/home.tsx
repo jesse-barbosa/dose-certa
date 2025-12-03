@@ -21,6 +21,7 @@ import { getMedicines, takeDose, deleteMedicine } from "@/services/medicines";
 export default function Home() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [username, setUsername] = useState("");
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,6 +40,7 @@ export default function Home() {
 
       const user = JSON.parse(session);
 
+      setUsername(user?.name || "");
       setUserId(user?.id || "");
       setLoading(false);
     })();
@@ -206,7 +208,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <Header title="Olá, Jessé Barbosa!" />
+      <Header title={`Olá, ${username}!`} />
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
