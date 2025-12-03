@@ -155,7 +155,8 @@ const styles = StyleSheet.create({
   // tintLayer: purple tint on top of the blur that gives the "liquid glass" hue
   tintLayer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(99,102,241,0.10)", // adjust alpha 0.08 - 0.20 for stronger/weaker color
+    backgroundColor: "#ffffffff",
+    opacity: Platform.OS === "ios" ? 0.08 : 0.86,
   },
 
   // top highlight: very subtle white streak to create depth
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: "auto",
-    marginBottom: 28,
+    marginBottom: 48,
   },
 
   logoutText: {
