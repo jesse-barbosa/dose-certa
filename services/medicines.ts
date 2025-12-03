@@ -1,5 +1,28 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { scheduleNotification, cancelNotification } from "./notifications";
 import { supabase } from "./supabase";
 
+// Função auxiliar: salvar notificações por medicamento
+async function saveNotificationIds(medicineId: string, ids: string[]) {
+  await AsyncStorage.setItem(`med_notifs_${medicineId}`, JSON.stringify(ids));
+}
+
+// Função auxiliar: recuperar IDs de notificações de um medicamento
+async function getNotificationIds(medicineId: string) {
+  const json = await AsyncStorage.getItem(`med_notifs_${medicineId}`);
+  return json ? JSON.parse(json) : [];
+}
+
+// Função auxiliar: cancelar notificações antigas de um medicamento
+async function cancelOldNotifications(medicineId: string) {
+  const oldIds = await getNotificationIds(medicineId);
+  for (const id of oldIds) {
+    await cancelNotification(id);
+  }
+  await saveNotificationIds(medicineId, []); // limpa lista
+}
+
+// ADICIONAR MEDICAMENTO + HORÁRIOS
 // ADICIONAR MEDICAMENTO + HORÁRIOS
 export async function addMedicine(medicineData: {
   name: string;
@@ -7,11 +30,10 @@ export async function addMedicine(medicineData: {
   times_per_day: number;
   duration_days: number;
   start_date: string;
-  schedule_hours: string[]; // ["08:00", "12:00", ...]
+  schedule_hours: string[];
   userId: string;
 }) {
   try {
-    // 1. Inserir o medicamento
     const { data: medData, error: medError } = await supabase
       .from("medicines")
       .insert([
@@ -29,10 +51,8 @@ export async function addMedicine(medicineData: {
       .single();
 
     if (medError) throw medError;
-
     const medicineId = medData.id;
 
-    // 2. Inserir horários vinculados
     const schedulesPayload = medicineData.schedule_hours.map((hour) => ({
       medicine_id: medicineId,
       time: hour,
@@ -43,6 +63,26 @@ export async function addMedicine(medicineData: {
       .insert(schedulesPayload);
 
     if (scheduleError) throw scheduleError;
+
+    // Agenda notificações e salva IDs
+    const notifIds: string[] = [];
+    for (const hourStr of medicineData.schedule_hours) {
+      const [h, m] = hourStr.split(":").map(Number);
+      const trigger = new Date(medicineData.start_date);
+      trigger.setHours(h);
+      trigger.setMinutes(m - 5);
+      trigger.setSeconds(0);
+
+      if (trigger > new Date()) {
+        const id = await scheduleNotification(
+          `Hora do remédio: ${medicineData.name}`,
+          `É hora de tomar ${medicineData.dosage}`,
+          trigger
+        );
+        notifIds.push(id);
+      }
+    }
+    await saveNotificationIds(medicineId, notifIds);
 
     return { success: true, data: medData };
   } catch (error) {
@@ -122,7 +162,7 @@ export async function takeDose(medicineId: string, hour: string) {
   }
 }
 
-// EDITAR MEDICAMENTO (horários editados em outra função)
+// EDITAR MEDICAMENTO
 export async function updateMedicine(
   medicineId: string,
   medicineData: {
@@ -131,12 +171,11 @@ export async function updateMedicine(
     times_per_day?: number;
     duration_days?: number;
     start_date?: string;
-    schedule_hours?: string[]; // opcional — se presente, atualizamos medicine_schedules
+    schedule_hours?: string[];
   },
   userId: string
 ) {
   try {
-    // 1) Atualiza a tabela medicines (campos que existem)
     const { schedule_hours, ...medicineOnly } = medicineData;
 
     const { data, error } = await supabase
@@ -151,32 +190,45 @@ export async function updateMedicine(
 
     if (error) throw error;
 
-    // 2) Se schedule_hours foi enviado, atualiza a tabela medicine_schedules:
-    //    a) Apaga os horários existentes daquele medicineId
-    //    b) Insere os novos (se houver)
     if (Array.isArray(schedule_hours)) {
-      // apagar antigos
-      const { error: delError } = await supabase
+      // 1 - Cancela notificações antigas
+      await cancelOldNotifications(medicineId);
+
+      // 2 - Atualiza horários no banco
+      await supabase
         .from("medicine_schedules")
         .delete()
         .eq("medicine_id", medicineId);
-
-      if (delError) throw delError;
-
-      // inserir novos (se houver elementos)
       if (schedule_hours.length > 0) {
-        // convertendo para o formato de time se necessário (supabase aceitará 'HH:MM' para time)
         const payload = schedule_hours.map((hour) => ({
           medicine_id: medicineId,
-          time: hour, // ex: "08:00"
+          time: hour,
         }));
-
         const { error: insError } = await supabase
           .from("medicine_schedules")
           .insert(payload);
-
         if (insError) throw insError;
       }
+
+      // 3 - Agenda novas notificações
+      const notifIds: string[] = [];
+      for (const hourStr of schedule_hours) {
+        const [h, m] = hourStr.split(":").map(Number);
+        const trigger = new Date(medicineData.start_date || new Date());
+        trigger.setHours(h);
+        trigger.setMinutes(m - 5);
+        trigger.setSeconds(0);
+
+        if (trigger > new Date()) {
+          const id = await scheduleNotification(
+            `Hora do remédio: ${medicineData.name}`,
+            `É hora de tomar ${medicineData.dosage}`,
+            trigger
+          );
+          notifIds.push(id);
+        }
+      }
+      await saveNotificationIds(medicineId, notifIds);
     }
 
     return { success: true, data };
@@ -189,13 +241,16 @@ export async function updateMedicine(
 // DELETAR MEDICAMENTO + HORÁRIOS
 export async function deleteMedicine(medicineId: string, userId: string) {
   try {
-    // Apagar horários primeiro
+    // 1 - Cancela notificações antigas
+    await cancelOldNotifications(medicineId);
+
+    // 2 - Apagar horários primeiro
     await supabase
       .from("medicine_schedules")
       .delete()
       .eq("medicine_id", medicineId);
 
-    // Apagar o medicamento
+    // 3 - Apagar o medicamento
     const { error } = await supabase
       .from("medicines")
       .delete()
