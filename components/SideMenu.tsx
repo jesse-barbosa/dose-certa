@@ -47,7 +47,7 @@ export default function SideMenu({
       setEmail(user?.email ?? "");
       setLoading(false);
     })();
-  }, []);
+  }, [visible]);
 
   if (!visible) return null;
 
