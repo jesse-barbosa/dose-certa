@@ -36,6 +36,15 @@ export default function Register() {
       );
       if (encErr) throw encErr;
 
+      // verifica se não há usuários com o mesmo email
+      const { data: user, error: userErr } = await supabase
+        .from("users")
+        .select("email")
+        .eq("email", email)
+        .single();
+
+      if (userErr || user) throw new Error("Email ja cadastrado!");
+
       // insere usuário e retorna os dados inseridos
       const { data: userData, error } = await supabase
         .from("users")
