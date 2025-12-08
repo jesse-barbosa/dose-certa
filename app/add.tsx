@@ -265,6 +265,18 @@ export default function AddMedicine() {
     return marks;
   };
 
+  const getOrdinalNumber = (number: number) => {
+    const ordinalNumbers = [
+      "Primeira",
+      "Segunda",
+      "Terceira",
+      "Quarta",
+      "Quinta",
+      "Sexta",
+    ];
+    return ordinalNumbers[number - 1] || "";
+  };
+
   return (
     <View style={styles.container}>
       <Header title="Adicionar Medicamento" />
@@ -353,7 +365,9 @@ export default function AddMedicine() {
               {/* Gera automaticamente a quantidade de horários */}
               {Array.from({ length: Number(timesPerDay) }).map((_, index) => (
                 <View key={index} style={{ marginBottom: 20 }}>
-                  <Text style={styles.label}>Horário {index + 1}</Text>
+                  <Text style={styles.label}>
+                    {getOrdinalNumber(index + 1)} dosagem
+                  </Text>
                   <TouchableOpacity
                     style={styles.selectButton}
                     onPress={() => openModal("time", index)}
