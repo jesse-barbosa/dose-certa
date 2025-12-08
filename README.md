@@ -1,4 +1,4 @@
-# 📱 **Dose Certa**
+# 📱 **Dose Ágil**
 
 **Aplicativo desenvolvido com Expo + React Native para organizar medicamentos, horários e dosagens de forma simples, inteligente e prática.**
 Ideal para quem precisa acompanhar rotinas de tratamento com mais segurança e menos esquecimento.
@@ -7,13 +7,13 @@ Ideal para quem precisa acompanhar rotinas de tratamento com mais segurança e m
 
 ## ✨ **Visão Geral**
 
-O **Dose Certa** permite que o usuário:
+O **Dose Ágil** permite que o usuário:
 
-* 💊 Cadastre medicamentos
-* ⏰ Defina horários e receba notificações
-* 📅 Acompanhe o histórico de doses tomadas
-* 📋 Organize rotinas de tratamento
-* 🔔 Reduza esquecimentos e aumente a precisão no uso diário
+- 💊 Cadastre medicamentos
+- ⏰ Defina horários e receba notificações
+- 📅 Acompanhe o histórico de doses tomadas
+- 📋 Organize rotinas de tratamento
+- 🔔 Reduza esquecimentos e aumente a precisão no uso diário
 
 ---
 
@@ -34,7 +34,7 @@ Copie-o e renomeie para **`.env`**, preenchendo as variáveis necessárias:
 cp .env.example .env
 ```
 
-> ✨ *As variáveis inclue: a URL do banco e a chave pública anônima do projeto na supabase*
+> ✨ _As variáveis inclue: a URL do banco e a chave pública anônima do projeto na supabase_
 
 ### **3. Rodar o app**
 
@@ -44,23 +44,23 @@ npx expo start
 
 ### **4. Instalar o Expo Go no celular**
 
-* **Android:** Disponível na Google Play Store
-* **iOS (iPhone):** Disponível na App Store
+- **Android:** Disponível na Google Play Store
+- **iOS (iPhone):** Disponível na App Store
 
 ---
 
 ## 🛠️ **Tecnologias Utilizadas**
 
-* **Expo**
-* **React Native**
-* **TypeScript**
-* **JavaScript**
-* **Node.js**
-* **Git & GitHub**
+- **Expo**
+- **React Native**
+- **TypeScript**
+- **JavaScript**
+- **Node.js**
+- **Git & GitHub**
 
 ---
 
-## *Demonstração do app*
+## _Demonstração do app_
 
 Aqui estão algumas telas do aplicativo:
 
@@ -81,8 +81,8 @@ Aqui estão algumas telas do aplicativo:
 
 ## 👥 **Autores**
 
-* Jessé Barbosa
-* Lauany Ramalho
-* Clarice Alves
-* Joyce Fernandes
-* Sara Rodrigues
+- Jessé Barbosa
+- Lauany Ramalho
+- Clarice Alves
+- Joyce Fernandes
+- Sara Rodrigues

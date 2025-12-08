@@ -77,7 +77,7 @@ export default function Login() {
           />
 
           <View>
-            <Text style={styles.appName}>Dose Certa</Text>
+            <Text style={styles.appName}>Dose Ágil</Text>
           </View>
         </View>
 

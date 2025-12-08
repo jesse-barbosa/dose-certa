@@ -1,11 +1,11 @@
 export default {
   expo: {
-    name: "dose-certa",
-    slug: "dose-certa",
+    name: "dose-agil",
+    slug: "dose-agil",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
-    scheme: "dosecerta",
+    scheme: "doseagil",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
 
@@ -23,7 +23,7 @@ export default {
     },
 
     android: {
-      package: "com.jessebarbosa.dosecerta",
+      package: "com.jessebarbosa.doseagil",
       adaptiveIcon: {
         backgroundColor: "#E6F4FE",
         foregroundImage: "./assets/images/android-icon-foreground.png",

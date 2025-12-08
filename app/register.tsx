@@ -91,7 +91,7 @@ export default function Register() {
           />
 
           <View>
-            <Text style={styles.appName}>Dose Certa</Text>
+            <Text style={styles.appName}>Dose Ágil</Text>
           </View>
         </View>
 
